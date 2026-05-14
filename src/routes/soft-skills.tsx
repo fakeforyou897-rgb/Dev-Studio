@@ -45,17 +45,8 @@ function SoftSkillsPage() {
           <PageHeader
             title="Communication & Soft Skills"
             description="Master the art of collaboration, leadership, and emotional intelligence."
-            className="mb-6"
+            className="mb-0 sm:mb-2"
           />
-          <div className="w-full">
-            <TabNav
-              tabs={SOFT_TABS.map((t) => ({
-                ...t,
-                onClick: () => navigate({ search: { tab: t.id } }),
-              }))}
-              activeTab={tab}
-            />
-          </div>
         </div>
       </div>
 

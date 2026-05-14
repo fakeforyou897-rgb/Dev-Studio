@@ -1,40 +1,21 @@
 import type { SkillAreaData } from "@/types/skills";
+import { TabNav } from "@/components/layout";
 
 interface Props {
   data: SkillAreaData;
   subArea: string;
   onSubAreaChange: (id: string) => void;
+  hideSubAreaNav?: boolean;
 }
 
-export function OverviewSection({ data, subArea, onSubAreaChange }: Props) {
+export function OverviewSection({ data, subArea, onSubAreaChange, hideSubAreaNav = false }: Props) {
   const saData = data.subAreas?.find((sa) => sa.id === subArea);
   const concepts = saData?.concepts || data.concepts;
 
   return (
     <div className="space-y-10">
-      {/* Sub-area selector (inline chips if subAreas exist) */}
-      {data.subAreas && (
-        <div className="flex flex-wrap gap-2">
-          {data.subAreas.map((sa) => {
-            const SaIcon = sa.icon;
-            const active = subArea === sa.id;
-            return (
-              <button
-                key={sa.id}
-                onClick={() => onSubAreaChange(sa.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                  active
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-                }`}
-              >
-                {SaIcon && <SaIcon className="size-3" />}
-                {sa.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Sub-area selector */}
+      
 
       <div>
         <h2 className="text-2xl font-bold tracking-tight mb-2">

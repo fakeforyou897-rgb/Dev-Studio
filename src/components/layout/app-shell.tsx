@@ -20,6 +20,12 @@ import {
 import { CommandPalette } from "./command-palette";
 import { UserMenu } from "@/components/auth/user-menu";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const WORKSPACE_NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -67,6 +73,39 @@ const SKILLS_NAV = [
   },
 ] as const;
 
+function NavItem({ item, active, isCollapsed }: { item: any; active: boolean; isCollapsed: boolean }) {
+  const Icon = item.icon;
+  const content = (
+    <Link
+      to={item.to}
+      search={item.search}
+      className={`flex items-center rounded-md transition-colors ${
+        isCollapsed ? "justify-center size-10 mx-auto" : "gap-2.5 px-2.5 py-1.5"
+      } ${
+        active
+          ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-border"
+          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/40"
+      }`}
+    >
+      <Icon className="size-4 shrink-0" />
+      {!isCollapsed && <span className="text-sm truncate">{item.label}</span>}
+    </Link>
+  );
+
+  if (!isCollapsed) return <li>{content}</li>;
+
+  return (
+    <li>
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent side="right" sideOffset={14} className="font-medium">
+          {item.label}
+        </TooltipContent>
+      </Tooltip>
+    </li>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -102,12 +141,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       {/* Sidebar */}
-      <nav
-        className={`fixed md:static inset-y-0 left-0 z-[110] shrink-0 border-r border-border bg-sidebar flex flex-col overflow-y-auto transition-[width,transform] duration-300 ease-in-out ${
-          mobileOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0"
-        } ${isCollapsed ? "md:w-[60px]" : "md:w-60"}`}
-      >
-        <div className={`h-14 flex items-center border-b border-border/40 mb-2 ${isCollapsed ? "justify-center px-0" : "px-4 gap-2.5"}`}>
+      <TooltipProvider delayDuration={0}>
+        <nav
+          className={`fixed md:static inset-y-0 left-0 z-[110] shrink-0 border-r border-border bg-sidebar flex flex-col overflow-y-auto transition-[width,transform] duration-300 ease-in-out ${
+            mobileOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0"
+          } ${isCollapsed ? "md:w-[60px]" : "md:w-60"}`}
+        >
+          <div className={`h-14 flex items-center border-b border-border/40 mb-2 ${isCollapsed ? "justify-center px-0" : "px-4 gap-2.5"}`}>
           <div className="size-7 rounded-md bg-primary grid place-items-center shrink-0">
             <Flame className="size-4 text-primary-foreground" />
           </div>
@@ -135,26 +175,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
           <ul className="space-y-1">
             {WORKSPACE_NAV.map((item) => {
-              const Icon = item.icon;
               const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
-              return (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    title={isCollapsed ? item.label : undefined}
-                    className={`flex items-center rounded-md transition-colors ${
-                      isCollapsed ? "justify-center size-10 mx-auto" : "gap-2.5 px-2.5 py-1.5"
-                    } ${
-                      active
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-border"
-                        : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/40"
-                    }`}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {!isCollapsed && <span className="text-sm truncate">{item.label}</span>}
-                  </Link>
-                </li>
-              );
+              return <NavItem key={item.to} item={item} active={active} isCollapsed={isCollapsed} />;
             })}
           </ul>
         </div>
@@ -168,27 +190,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
           <ul className="space-y-1">
             {COMMUNICATION_NAV.map((item) => {
-              const Icon = item.icon;
               const active = item.match.some((p) => pathname.startsWith(p));
-              return (
-                <li key={item.label}>
-                  <Link
-                    to={item.to}
-                    search={item.search}
-                    title={isCollapsed ? item.label : undefined}
-                    className={`flex items-center rounded-md transition-colors ${
-                      isCollapsed ? "justify-center size-10 mx-auto" : "gap-2.5 px-2.5 py-1.5"
-                    } ${
-                      active
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-border"
-                        : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/40"
-                    }`}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {!isCollapsed && <span className="text-sm truncate">{item.label}</span>}
-                  </Link>
-                </li>
-              );
+              return <NavItem key={item.label} item={item} active={active} isCollapsed={isCollapsed} />;
             })}
           </ul>
         </div>
@@ -202,27 +205,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
           <ul className="space-y-1">
             {SKILLS_NAV.map((item) => {
-              const Icon = item.icon;
               const active = item.match.some((p) => pathname.startsWith(p));
-              return (
-                <li key={item.label}>
-                  <Link
-                    to={item.to}
-                    search={item.search}
-                    title={isCollapsed ? item.label : undefined}
-                    className={`flex items-center rounded-md transition-colors ${
-                      isCollapsed ? "justify-center size-10 mx-auto" : "gap-2.5 px-2.5 py-1.5"
-                    } ${
-                      active
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-border"
-                        : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/40"
-                    }`}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    {!isCollapsed && <span className="text-sm truncate">{item.label}</span>}
-                  </Link>
-                </li>
-              );
+              return <NavItem key={item.label} item={item} active={active} isCollapsed={isCollapsed} />;
             })}
           </ul>
         </div>
@@ -235,22 +219,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             </p>
           )}
           <ul className="space-y-1">
-            <li>
-              <Link
-                to="/interview"
-                title={isCollapsed ? "Interview" : undefined}
-                className={`flex items-center rounded-md transition-colors ${
-                  isCollapsed ? "justify-center size-10 mx-auto" : "gap-2.5 px-2.5 py-1.5"
-                } ${
-                  pathname.startsWith("/interview")
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/40"
-                }`}
-              >
-                <GraduationCap className="size-4 shrink-0" />
-                {!isCollapsed && <span className="text-sm truncate">Interview</span>}
-              </Link>
-            </li>
+            <NavItem 
+              item={{ to: "/interview", label: "Interview", icon: GraduationCap }} 
+              active={pathname.startsWith("/interview")} 
+              isCollapsed={isCollapsed} 
+            />
           </ul>
         </div>
 
@@ -268,19 +241,26 @@ export function AppShell({ children }: { children: ReactNode }) {
               </kbd>
             </button>
           ) : (
-            <button
-              onClick={() => setPaletteOpen(true)}
-              title="Quick search (⌘K)"
-              className="w-10 h-10 mx-auto flex items-center justify-center rounded-md bg-card hover:bg-sidebar-accent/50 transition-colors text-muted-foreground mb-3"
-            >
-              <Search className="size-4 shrink-0" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setPaletteOpen(true)}
+                  className="w-10 h-10 mx-auto flex items-center justify-center rounded-md bg-card hover:bg-sidebar-accent/50 transition-colors text-muted-foreground mb-3"
+                >
+                  <Search className="size-4 shrink-0" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={14} className="font-medium">
+                Quick search (⌘K)
+              </TooltipContent>
+            </Tooltip>
           )}
           <div className="w-full">
             <UserMenu isCollapsed={isCollapsed} />
           </div>
         </div>
       </nav>
+    </TooltipProvider>
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
