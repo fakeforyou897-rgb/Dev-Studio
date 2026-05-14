@@ -15,6 +15,8 @@ import { SplitLayout } from "../layout";
 import { Input } from "@/components/ui/input";
 import { useForge } from "@/lib/store";
 import { QAEditorDialog } from "./qa-editor-dialog";
+import type { FocusArea } from "@/types/common";
+import type { InterviewQuestion } from "@/types/skills";
 
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 const DOMAINS = [
@@ -32,7 +34,7 @@ export function QuestionList() {
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [domain, setDomain] = useState<string>("frontend");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingQ, setEditingQ] = useState<any>(null);
+  const [editingQ, setEditingQ] = useState<InterviewQuestion | null>(null);
 
   const filtered = useMemo(() => {
     return interviewQuestions.filter((q) => {
@@ -50,7 +52,7 @@ export function QuestionList() {
     setDialogOpen(true);
   };
 
-  const handleEdit = (q: any) => {
+  const handleEdit = (q: InterviewQuestion) => {
     setEditingQ(q);
     setDialogOpen(true);
   };
@@ -195,7 +197,7 @@ export function QuestionList() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editing={editingQ}
-        defaultArea={domain as any}
+        defaultArea={domain as FocusArea}
       />
     </>
   );

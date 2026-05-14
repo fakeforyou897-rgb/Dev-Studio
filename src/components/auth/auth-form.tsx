@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialAuth } from "./social-auth";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function AuthForm() {
   const navigate = useNavigate();
@@ -101,8 +102,7 @@ export function AuthForm() {
           <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground ml-1">
             Password
           </label>
-          <Input
-            type="password"
+          <PasswordInput
             required
             minLength={6}
             value={password}

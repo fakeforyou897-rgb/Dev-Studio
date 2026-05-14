@@ -8,7 +8,7 @@ import { Field, Input, TextArea } from "./shared";
 import { SplitLayout } from "../layout";
 
 export function Prompts({ selectedId }: { selectedId?: string }) {
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: "/tools" });
   const search = useSearch({ from: "/tools" });
   const { prompts, upsertPrompt, deletePrompt, toggleFavoritePrompt, incrementPromptUsage } =
     useForge();
@@ -37,7 +37,7 @@ export function Prompts({ selectedId }: { selectedId?: string }) {
 
   const selected = selectedId ? prompts.find((p) => p.id === selectedId) : filtered[0];
 
-  const select = (pid: string) => navigate({ search: { ...search, id: pid } } as any);
+  const select = (pid: string) => navigate({ search: (prev) => ({ ...prev, id: pid }) });
 
   const create = () => {
     const p: Prompt = {
@@ -84,69 +84,89 @@ export function Prompts({ selectedId }: { selectedId?: string }) {
 
   const sidebar = (
     <div className="flex flex-col h-full min-h-0">
-      <div className="p-3 border-b border-border space-y-2">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter prompts…"
-            className="pl-8"
-          />
+      {/* Sticky Top Section */}
+      <div className="p-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-md z-20 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <Sparkles className="size-4" />
+            </div>
+            <h3 className="text-sm font-semibold">Prompts</h3>
+          </div>
+          <button
+            onClick={create}
+            className="flex items-center gap-1.5 text-[11px] font-medium bg-primary text-primary-foreground px-2.5 py-1.5 rounded-md hover:opacity-90 transition-opacity"
+          >
+            <Plus className="size-3.5" /> New
+          </button>
         </div>
-        <div className="flex flex-wrap gap-1">
-          {categories.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
-                category === c
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+
+        <div className="space-y-3">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Filter prompts…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full bg-card/50 border border-border rounded-lg py-1.5 pl-9 pr-3 text-[11px] outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary/50 transition-all"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {categories.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCategory(c)}
+                className={`px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider border transition-all ${
+                  category === c
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "border-border text-muted-foreground hover:text-foreground hover:bg-card"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
-        <button
-          onClick={create}
-          className="w-full flex items-center justify-center gap-1.5 bg-primary/10 text-primary border border-primary/20 text-xs font-medium py-1.5 rounded-md hover:bg-primary/20 transition-colors"
-        >
-          <Plus className="size-3.5" /> New prompt
-        </button>
       </div>
-      <ul className="flex-1 overflow-y-auto scrollbar-thin">
+
+      <ul className="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-0.5">
         {filtered.map((p) => {
           const active = selected?.id === p.id;
           return (
             <li key={p.id}>
               <button
                 onClick={() => select(p.id)}
-                className={`w-full text-left p-4 border-b border-border transition-colors relative ${
-                  active ? "bg-card" : "hover:bg-card/50"
+                className={`w-full text-left p-3 rounded-lg transition-all relative group ${
+                  active ? "bg-card shadow-sm border border-border" : "hover:bg-card/40 border border-transparent"
                 }`}
               >
-                {active ? (
-                  <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />
-                ) : null}
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-1.5 py-0.5 rounded bg-muted text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider ${
+                    active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                  }`}>
                     {p.category}
                   </span>
                   {p.favorite ? <Star className="size-3 text-accent fill-accent" /> : null}
-                  <span className="text-[10px] text-muted-foreground font-mono ml-auto">
+                  <span className="text-[9px] text-muted-foreground font-mono ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
                     {p.usageCount}×
                   </span>
                 </div>
-                <p className="text-sm font-medium leading-snug mb-1 truncate">{p.title}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>
+                <p className={`text-xs font-medium leading-snug mb-1 truncate ${active ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
+                  {p.title}
+                </p>
+                <p className="text-[10px] text-muted-foreground line-clamp-1">
+                  {p.description || "No description"}
+                </p>
               </button>
             </li>
           );
         })}
         {filtered.length === 0 ? (
-          <li className="p-8 text-center text-xs text-muted-foreground">No prompts match.</li>
+          <li className="p-8 text-center text-xs text-muted-foreground italic">
+            No prompts found.
+          </li>
         ) : null}
       </ul>
     </div>
@@ -184,7 +204,7 @@ export function Prompts({ selectedId }: { selectedId?: string }) {
                 <button
                   onClick={() => {
                     deletePrompt(selected.id);
-                    navigate({ search: { ...search, id: undefined } } as any);
+                    navigate({ search: (prev) => ({ ...prev, id: undefined }) });
                     toast.success("Prompt deleted");
                   }}
                   className="p-2 rounded-md border border-border hover:bg-destructive/10 hover:border-destructive/40"

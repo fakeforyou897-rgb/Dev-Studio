@@ -29,16 +29,15 @@ const TABS = [
 ] as const;
 
 export function SkillTabs() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useSearch({ strict: false });
-  const currentTab = (search as any).tab || "frontend";
+  const searchParams = useSearch({ strict: false }) as Record<string, string | undefined>;
+  const currentTab = searchParams.tab || "frontend";
 
   return (
     <TabNav
       tabs={TABS.map((t) => ({
         ...t,
         to: t.to as string,
-        search: (t as any).search,
+        search: t.search as Record<string, unknown>,
       }))}
       activeTab={currentTab}
     />

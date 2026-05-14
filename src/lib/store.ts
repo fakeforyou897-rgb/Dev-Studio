@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { Json } from "@/integrations/supabase/types";
+import type { FocusArea, Difficulty } from "../types/common";
 import type { Prompt, Agent, ComponentAsset, Template, Snippet, Connector, SocialDraft, MailTemplate } from "../types/tools";
 import type { InterviewQuestion } from "../types/skills";
 import * as db from "@/integrations/supabase/actions";
@@ -98,52 +100,92 @@ export const useForge = create<ForgeState>()(
 
             set({
               prompts: p.map(x => ({
-                ...x,
-                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
-                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now(),
-                usageCount: x.usage_count ?? 0
-              } as any)),
-              agents: a.map(x => ({
-                ...x,
-                systemPrompt: x.system_prompt,
-                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
-                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
-              } as any)),
-              components: c.map(x => ({
-                ...x,
-                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
-                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now(),
-                usageCount: x.usage_count ?? 0
-              } as any)),
-              snippets: s.map(x => ({
-                ...x,
-                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
-                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
-              } as any)),
-              connectors: conn.map(x => ({
-                ...x,
-                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
-                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
-              } as any)),
-              socialDrafts: soc.map(x => ({
-                ...x,
-                mediaUrls: x.media_urls,
-                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
-                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
-              } as any)),
-              mailTemplates: mail.map(x => ({
-                ...x,
-                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
-                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
-              } as any)),
-              interviewQuestions: q.map(x => ({
-                ...x,
-                area: (x.domain as any) || "frontend",
-                category: (x.domain as any) || "frontend",
+                id: x.id,
+                title: x.title,
+                body: x.body,
+                description: x.description || "",
+                category: x.category || "General",
                 tags: x.tags || [],
-                favorite: x.is_global ?? false, // Assuming is_global was used as a proxy for fav in some logic
+                variables: x.variables || [],
+                favorite: x.favorite || false,
+                usageCount: x.usage_count ?? 0,
+                versions: (x.versions as unknown as Prompt['versions']) || [],
+                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now(),
+              })),
+              agents: a.map(x => ({
+                id: x.id,
+                name: x.name,
+                role: x.role || "",
+                systemPrompt: x.system_prompt,
+                tools: x.tools || [],
+                model: x.model || "gpt-4",
+                temperature: x.temperature ?? 0.7,
+                status: (x.status as Agent['status']) || "idle",
+                tags: x.tags || [],
+                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+              })),
+              components: c.map(x => ({
+                id: x.id,
+                name: x.name,
+                description: x.description || "",
+                category: x.category || "General",
+                tags: x.tags || [],
+                code: x.code,
+                dependencies: x.dependencies || [],
+                favorite: x.favorite || false,
+                usageCount: x.usage_count ?? 0,
+                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+              })),
+              snippets: s.map(x => ({
+                id: x.id,
+                title: x.title,
+                language: x.language,
+                description: x.description || "",
+                code: x.code,
+                tags: x.tags || [],
+                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+              })),
+              connectors: conn.map(x => ({
+                id: x.id,
+                type: x.type,
+                name: x.name,
+                email: x.email || undefined,
+                phone: x.phone || undefined,
+                notes: x.notes || undefined,
+                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+              })),
+              socialDrafts: soc.map(x => ({
+                id: x.id,
+                platform: x.platform,
+                content: x.content,
+                mediaUrls: x.media_urls || [],
+                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+              })),
+              mailTemplates: mail.map(x => ({
+                id: x.id,
+                channel: x.channel,
+                subject: x.subject || undefined,
+                content: x.content,
+                createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+                updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+              })),
+              interviewQuestions: q.map(x => ({
+                id: x.id,
+                question: x.question,
+                answer: x.answer,
+                difficulty: (x.difficulty as Difficulty) || "mid",
+                area: (x.domain as FocusArea) || "frontend",
+                category: x.domain || "frontend",
+                tags: x.tags || [],
+                favorite: x.is_global ?? false,
                 createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now()
-              } as any)),
+              })),
               userProgress: progressMap,
               initialized: true
             });
@@ -161,12 +203,45 @@ export const useForge = create<ForgeState>()(
       },
 
       upsertPrompt: async (p) => {
-        set((s) => ({ prompts: s.prompts.some(x => x.id === p.id) ? s.prompts.map(x => x.id === p.id ? p : x) : [p, ...s.prompts] }));
-        try { await db.upsertPrompt({ ...p, usage_count: p.usageCount, versions: p.versions as any, user_id: '' }); } catch (e) { console.error(e); }
+        const previous = get().prompts;
+        set((s) => ({ 
+          prompts: s.prompts.some(x => x.id === p.id) 
+            ? s.prompts.map(x => x.id === p.id ? p : x) 
+            : [p, ...s.prompts] 
+        }));
+        
+        toast.promise(
+          db.upsertPrompt({ 
+            ...p, 
+            usage_count: p.usageCount, 
+            versions: p.versions as unknown as Json, 
+            user_id: '' 
+          }),
+          {
+            loading: 'Saving prompt...',
+            success: 'Prompt saved!',
+            error: (err) => {
+              set({ prompts: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deletePrompt: async (id) => {
+        const previous = get().prompts;
         set((s) => ({ prompts: s.prompts.filter(p => p.id !== id) }));
-        try { await db.deletePrompt(id); } catch (e) { console.error(e); }
+        
+        toast.promise(
+          db.deletePrompt(id),
+          {
+            loading: 'Deleting prompt...',
+            success: 'Prompt deleted!',
+            error: (err) => {
+              set({ prompts: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
       toggleFavoritePrompt: async (id) => {
         const p = get().prompts.find(x => x.id === id);
@@ -178,21 +253,77 @@ export const useForge = create<ForgeState>()(
       },
 
       upsertAgent: async (a) => {
-        set((s) => ({ agents: s.agents.some(x => x.id === a.id) ? s.agents.map(x => x.id === a.id ? a : x) : [a, ...s.agents] }));
-        try { await db.upsertAgent({ ...a, system_prompt: a.systemPrompt, user_id: '' }); } catch (e) { console.error(e); }
+        const previous = get().agents;
+        set((s) => ({ 
+          agents: s.agents.some(x => x.id === a.id) 
+            ? s.agents.map(x => x.id === a.id ? a : x) 
+            : [a, ...s.agents] 
+        }));
+
+        toast.promise(
+          db.upsertAgent({ ...a, system_prompt: a.systemPrompt, user_id: '' }),
+          {
+            loading: 'Saving agent...',
+            success: 'Agent saved!',
+            error: (err) => {
+              set({ agents: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteAgent: async (id) => {
+        const previous = get().agents;
         set((s) => ({ agents: s.agents.filter(a => a.id !== id) }));
-        try { await db.deleteAgent(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteAgent(id),
+          {
+            loading: 'Deleting agent...',
+            success: 'Agent deleted!',
+            error: (err) => {
+              set({ agents: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
 
       upsertComponent: async (c) => {
-        set((s) => ({ components: s.components.some(x => x.id === c.id) ? s.components.map(x => x.id === c.id ? c : x) : [c, ...s.components] }));
-        try { await db.upsertComponent({ ...c, usage_count: c.usageCount, user_id: '' }); } catch (e) { console.error(e); }
+        const previous = get().components;
+        set((s) => ({ 
+          components: s.components.some(x => x.id === c.id) 
+            ? s.components.map(x => x.id === c.id ? c : x) 
+            : [c, ...s.components] 
+        }));
+
+        toast.promise(
+          db.upsertComponent({ ...c, usage_count: c.usageCount, user_id: '' }),
+          {
+            loading: 'Saving component...',
+            success: 'Component saved!',
+            error: (err) => {
+              set({ components: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteComponent: async (id) => {
+        const previous = get().components;
         set((s) => ({ components: s.components.filter(c => c.id !== id) }));
-        try { await db.deleteComponent(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteComponent(id),
+          {
+            loading: 'Deleting component...',
+            success: 'Component deleted!',
+            error: (err) => {
+              set({ components: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
       toggleFavoriteComponent: async (id) => {
         const c = get().components.find(x => x.id === id);
@@ -200,39 +331,151 @@ export const useForge = create<ForgeState>()(
       },
 
       upsertSnippet: async (snip) => {
-        set((s) => ({ snippets: s.snippets.some(x => x.id === snip.id) ? s.snippets.map(x => x.id === snip.id ? snip : x) : [snip, ...s.snippets] }));
-        try { await db.upsertSnippet({ ...snip, user_id: '' }); } catch (e) { console.error(e); }
+        const previous = get().snippets;
+        set((s) => ({ 
+          snippets: s.snippets.some(x => x.id === snip.id) 
+            ? s.snippets.map(x => x.id === snip.id ? snip : x) 
+            : [snip, ...s.snippets] 
+        }));
+
+        toast.promise(
+          db.upsertSnippet({ ...snip, user_id: '' }),
+          {
+            loading: 'Saving snippet...',
+            success: 'Snippet saved!',
+            error: (err) => {
+              set({ snippets: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteSnippet: async (id) => {
+        const previous = get().snippets;
         set((s) => ({ snippets: s.snippets.filter(x => x.id !== id) }));
-        try { await db.deleteSnippet(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteSnippet(id),
+          {
+            loading: 'Deleting snippet...',
+            success: 'Snippet deleted!',
+            error: (err) => {
+              set({ snippets: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
 
       upsertConnector: async (conn) => {
-        set((s) => ({ connectors: s.connectors.some(x => x.id === conn.id) ? s.connectors.map(x => x.id === conn.id ? conn : x) : [conn, ...s.connectors] }));
-        try { await db.upsertConnector({ ...conn, user_id: '', type: conn.type as any }); } catch (e) { console.error(e); }
+        const previous = get().connectors;
+        set((s) => ({ 
+          connectors: s.connectors.some(x => x.id === conn.id) 
+            ? s.connectors.map(x => x.id === conn.id ? conn : x) 
+            : [conn, ...s.connectors] 
+        }));
+
+        toast.promise(
+          db.upsertConnector({ ...conn, user_id: '', type: conn.type as "github" | "google" | "discord" | "slack" }),
+          {
+            loading: 'Saving connector...',
+            success: 'Connector saved!',
+            error: (err) => {
+              set({ connectors: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteConnector: async (id) => {
+        const previous = get().connectors;
         set((s) => ({ connectors: s.connectors.filter(x => x.id !== id) }));
-        try { await db.deleteConnector(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteConnector(id),
+          {
+            loading: 'Deleting connector...',
+            success: 'Connector deleted!',
+            error: (err) => {
+              set({ connectors: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
 
       upsertSocialDraft: async (soc) => {
-        set((s) => ({ socialDrafts: s.socialDrafts.some(x => x.id === soc.id) ? s.socialDrafts.map(x => x.id === soc.id ? soc : x) : [soc, ...s.socialDrafts] }));
-        try { await db.upsertSocialDraft({ ...soc, user_id: '', platform: (soc.platform as string) || "linkedin", media_urls: soc.mediaUrls || [] }); } catch (e) { console.error(e); }
+        const previous = get().socialDrafts;
+        set((s) => ({ 
+          socialDrafts: s.socialDrafts.some(x => x.id === soc.id) 
+            ? s.socialDrafts.map(x => x.id === soc.id ? soc : x) 
+            : [soc, ...s.socialDrafts] 
+        }));
+
+        toast.promise(
+          db.upsertSocialDraft({ ...soc, user_id: '', platform: (soc.platform as string) || "linkedin", media_urls: soc.mediaUrls || [] }),
+          {
+            loading: 'Saving draft...',
+            success: 'Draft saved!',
+            error: (err) => {
+              set({ socialDrafts: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteSocialDraft: async (id) => {
+        const previous = get().socialDrafts;
         set((s) => ({ socialDrafts: s.socialDrafts.filter(x => x.id !== id) }));
-        try { await db.deleteSocialDraft(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteSocialDraft(id),
+          {
+            loading: 'Deleting draft...',
+            success: 'Draft deleted!',
+            error: (err) => {
+              set({ socialDrafts: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
 
       upsertMailTemplate: async (mail) => {
-        set((s) => ({ mailTemplates: s.mailTemplates.some(x => x.id === mail.id) ? s.mailTemplates.map(x => x.id === mail.id ? mail : x) : [mail, ...s.mailTemplates] }));
-        try { await db.upsertMailTemplate({ ...mail, user_id: '', channel: mail.channel as any }); } catch (e) { console.error(e); }
+        const previous = get().mailTemplates;
+        set((s) => ({ 
+          mailTemplates: s.mailTemplates.some(x => x.id === mail.id) 
+            ? s.mailTemplates.map(x => x.id === mail.id ? mail : x) 
+            : [mail, ...s.mailTemplates] 
+        }));
+
+        toast.promise(
+          db.upsertMailTemplate({ ...mail, user_id: '', channel: mail.channel as "email" | "sms" | "whatsapp" }),
+          {
+            loading: 'Saving template...',
+            success: 'Template saved!',
+            error: (err) => {
+              set({ mailTemplates: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteMailTemplate: async (id) => {
+        const previous = get().mailTemplates;
         set((s) => ({ mailTemplates: s.mailTemplates.filter(x => x.id !== id) }));
-        try { await db.deleteMailTemplate(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteMailTemplate(id),
+          {
+            loading: 'Deleting template...',
+            success: 'Template deleted!',
+            error: (err) => {
+              set({ mailTemplates: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
 
       toggleProgress: async (itemId, areaId) => {
@@ -243,25 +486,81 @@ export const useForge = create<ForgeState>()(
 
       // Placeholder for remaining methods
       upsertTemplate: async (t) => {
-        set((s) => ({ templates: s.templates.some(x => x.id === t.id) ? s.templates.map(x => x.id === t.id ? t : x) : [t, ...s.templates] }));
-        try { await db.upsertTemplate({ ...t, user_id: '' }); } catch (e) { console.error(e); }
+        const previous = get().templates;
+        set((s) => ({ 
+          templates: s.templates.some(x => x.id === t.id) 
+            ? s.templates.map(x => x.id === t.id ? t : x) 
+            : [t, ...s.templates] 
+        }));
+
+        toast.promise(
+          db.upsertTemplate({ ...t, user_id: '' }),
+          {
+            loading: 'Saving template...',
+            success: 'Template saved!',
+            error: (err) => {
+              set({ templates: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteTemplate: async (id) => {
+        const previous = get().templates;
         set((s) => ({ templates: s.templates.filter(x => x.id !== id) }));
-        try { await db.deleteTemplate(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteTemplate(id),
+          {
+            loading: 'Deleting template...',
+            success: 'Template deleted!',
+            error: (err) => {
+              set({ templates: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
       upsertInterviewQuestion: async (q) => {
-        set((s) => ({ interviewQuestions: s.interviewQuestions.some(x => x.id === q.id) ? s.interviewQuestions.map(x => x.id === q.id ? q : x) : [q, ...s.interviewQuestions] }));
-        try { await db.upsertInterviewQuestion({ 
-          ...q, 
-          user_id: '', 
-          domain: (q.area || q.category || 'frontend') as any,
-          tags: q.tags || []
-        }); } catch (e) { console.error(e); }
+        const previous = get().interviewQuestions;
+        set((s) => ({ 
+          interviewQuestions: s.interviewQuestions.some(x => x.id === q.id) 
+            ? s.interviewQuestions.map(x => x.id === q.id ? q : x) 
+            : [q, ...s.interviewQuestions] 
+        }));
+
+        toast.promise(
+          db.upsertInterviewQuestion({ 
+            ...q, 
+            user_id: '', 
+            domain: (q.area || q.category || 'frontend'),
+            tags: q.tags || []
+          }),
+          {
+            loading: 'Saving question...',
+            success: 'Question saved!',
+            error: (err) => {
+              set({ interviewQuestions: previous });
+              return `Failed to save: ${err.message}`;
+            }
+          }
+        );
       },
       deleteInterviewQuestion: async (id) => {
+        const previous = get().interviewQuestions;
         set((s) => ({ interviewQuestions: s.interviewQuestions.filter(x => x.id !== id) }));
-        try { await db.deleteInterviewQuestion(id); } catch (e) { console.error(e); }
+
+        toast.promise(
+          db.deleteInterviewQuestion(id),
+          {
+            loading: 'Deleting question...',
+            success: 'Question deleted!',
+            error: (err) => {
+              set({ interviewQuestions: previous });
+              return `Failed to delete: ${err.message}`;
+            }
+          }
+        );
       },
       toggleFavoriteInterviewQuestion: async (id) => {
         const q = get().interviewQuestions.find(x => x.id === id);
@@ -274,24 +573,44 @@ export const useForge = create<ForgeState>()(
 
         console.log("Seeding initial data...");
 
-        const prompts = seedPrompts.map(({ id, ...p }) => ({ ...p, body: p.body, system_prompt: "" }));
-        const agents = seedAgents.map(({ id, ...a }) => ({ ...a, system_prompt: a.systemPrompt }));
-        const components = seedComponents.map(({ id, ...c }) => c);
-        const snippets = seedSnippets.map(({ id, ...s }) => s);
-        const templates = seedTemplates.map(({ id, ...t }) => t);
-        const interviewQs = [...seedInterviewQuestions, ...seedInterviewExtra].map(({ id, ...q }) => ({
+        const promptsData = seedPrompts.map(({ id, ...p }) => ({ 
+          ...p, 
+          user_id: user.id,
+          body: p.body, 
+          system_prompt: "" 
+        }));
+        const agentsData = seedAgents.map(({ id, ...a }) => ({ 
+          ...a, 
+          user_id: user.id,
+          system_prompt: a.systemPrompt 
+        }));
+        const componentsData = seedComponents.map(({ id, ...c }) => ({
+          ...c,
+          user_id: user.id
+        }));
+        const snippetsData = seedSnippets.map(({ id, ...s }) => ({
+          ...s,
+          user_id: user.id
+        }));
+        const templatesData = seedTemplates.map(({ id, ...t }) => ({
+          ...t,
+          user_id: user.id
+        }));
+        const interviewQsData = [...seedInterviewQuestions, ...seedInterviewExtra].map(({ id, ...q }) => ({
           ...q,
+          user_id: user.id,
           domain: q.area || q.category || 'frontend',
+          answer_depths: (q.answerDepths || []) as unknown as Json
         }));
 
         try {
           await Promise.all([
-            db.upsertPrompts(prompts as any),
-            db.upsertAgents(agents as any),
-            db.upsertComponents(components as any),
-            db.upsertSnippets(snippets as any),
-            db.upsertTemplates(templates as any),
-            db.upsertInterviewQuestions(interviewQs as any),
+            db.upsertPrompts(promptsData),
+            db.upsertAgents(agentsData),
+            db.upsertComponents(componentsData),
+            db.upsertSnippets(snippetsData),
+            db.upsertTemplates(templatesData),
+            db.upsertInterviewQuestions(interviewQsData),
           ]);
 
           // Refresh data
@@ -305,18 +624,78 @@ export const useForge = create<ForgeState>()(
           ]);
 
           set({
-            prompts: p.map(x => ({ ...x, createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(), updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now(), usageCount: x.usage_count ?? 0 } as any)),
-            agents: a.map(x => ({ ...x, systemPrompt: x.system_prompt, createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(), updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now() } as any)),
-            components: c.map(x => ({ ...x, createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(), updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now(), usageCount: x.usage_count ?? 0 } as any)),
-            snippets: s.map(x => ({ ...x, createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(), updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now() } as any)),
-            templates: t.map(x => ({ ...x, createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(), updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now() } as any)),
-            interviewQuestions: iq.map(x => ({ 
-              ...x, 
-              area: (x.domain as any) || "frontend",
-              category: (x.domain as any) || "frontend",
+            prompts: p.map(x => ({
+              id: x.id,
+              title: x.title,
+              body: x.body,
+              description: x.description || "",
+              category: x.category || "General",
               tags: x.tags || [],
-              createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now() 
-            } as any)),
+              variables: x.variables || [],
+              favorite: x.favorite || false,
+              usageCount: x.usage_count ?? 0,
+              versions: (x.versions as unknown as Prompt['versions']) || [],
+              createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+              updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now(),
+            })),
+            agents: a.map(x => ({
+              id: x.id,
+              name: x.name,
+              role: x.role || "",
+              systemPrompt: x.system_prompt,
+              tools: x.tools || [],
+              model: x.model || "gpt-4",
+              temperature: x.temperature ?? 0.7,
+              status: (x.status as Agent['status']) || "idle",
+              tags: x.tags || [],
+              createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+              updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+            })),
+            components: c.map(x => ({
+              id: x.id,
+              name: x.name,
+              description: x.description || "",
+              category: x.category || "General",
+              tags: x.tags || [],
+              code: x.code,
+              dependencies: x.dependencies || [],
+              favorite: x.favorite || false,
+              usageCount: x.usage_count ?? 0,
+              createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+              updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+            })),
+            snippets: s.map(x => ({
+              id: x.id,
+              title: x.title,
+              language: x.language,
+              description: x.description || "",
+              code: x.code,
+              tags: x.tags || [],
+              createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+              updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+            })),
+            templates: t.map(x => ({
+              id: x.id,
+              name: x.name,
+              description: x.description || "",
+              stack: x.stack || [],
+              tags: x.tags || [],
+              structure: x.structure || "",
+              notes: x.notes || "",
+              createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now(),
+              updatedAt: x.updated_at ? new Date(x.updated_at).getTime() : Date.now()
+            })),
+            interviewQuestions: iq.map(x => ({
+              id: x.id,
+              question: x.question,
+              answer: x.answer,
+              difficulty: (x.difficulty as Difficulty) || "mid",
+              area: (x.domain as FocusArea) || "frontend",
+              category: x.domain || "frontend",
+              tags: x.tags || [],
+              favorite: x.is_global ?? false,
+              createdAt: x.created_at ? new Date(x.created_at).getTime() : Date.now()
+            })),
           });
           toast.success("Initial data synchronized!");
         } catch (e) {

@@ -4,6 +4,7 @@ import { useForge } from "@/lib/store";
 import { QACard } from "@/components/interview/qa-card";
 import { QAEditorDialog } from "@/components/interview/qa-editor-dialog";
 import { Field, StatusDot, Input } from "@/components/tools/shared";
+import { FocusArea } from "@/types/common";
 import { SplitLayout } from "../layout";
 import type { SkillAreaData, InterviewQuestion } from "@/types/skills";
 
@@ -33,7 +34,8 @@ export function InterviewSection({ data }: Props) {
   const toggleExpanded = (id: string) =>
     setExpanded((p) => {
       const n = new Set(p);
-      n.has(id) ? n.delete(id) : n.add(id);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
       return n;
     });
 
@@ -41,7 +43,7 @@ export function InterviewSection({ data }: Props) {
     setEditingQ(null);
     setDialogOpen(true);
   };
-  const openEdit = (q: InterviewQuestion) => {
+  const handleEdit = (q: InterviewQuestion) => {
     setEditingQ(q);
     setDialogOpen(true);
   };
@@ -101,7 +103,7 @@ export function InterviewSection({ data }: Props) {
             isOpen={expanded.has(q.id)}
             onToggle={() => toggleExpanded(q.id)}
             onToggleFavorite={() => toggleFavoriteInterviewQuestion(q.id)}
-            onEdit={() => openEdit(q)}
+            onEdit={() => handleEdit(q)}
             onDelete={() => deleteInterviewQuestion(q.id)}
           />
         ))}
@@ -121,7 +123,7 @@ export function InterviewSection({ data }: Props) {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editing={editingQ}
-        defaultArea={data.id as any}
+        defaultArea={data.id as FocusArea}
       />
     </div>
   );

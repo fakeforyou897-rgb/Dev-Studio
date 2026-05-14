@@ -4,6 +4,7 @@ import { Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function ResetPasswordForm() {
   const navigate = useNavigate();
@@ -36,8 +37,7 @@ export function ResetPasswordForm() {
         <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground ml-1">
           New password
         </label>
-        <Input
-          type="password"
+        <PasswordInput
           required
           minLength={6}
           value={password}

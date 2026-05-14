@@ -73,7 +73,16 @@ function Index() {
     },
   ] as const;
 
-  const focusAreas = [
+  const focusAreas: { 
+    to: string; 
+    label: string; 
+    icon: React.ElementType; 
+    desc: string; 
+    color: string; 
+    iconColor: string; 
+    area: string; 
+    search?: Record<string, unknown>;
+  }[] = [
     {
       to: "/tech-skills",
       label: "Frontend",
@@ -202,7 +211,7 @@ function Index() {
                   <Link
                     key={a.label}
                     to={a.to}
-                    search={a.search as any}
+                    search={a.search}
                     className={`group p-5 rounded-lg border bg-gradient-to-br ${a.color} hover:opacity-90 transition-opacity`}
                   >
                     <Icon className={`size-5 ${a.iconColor} mb-3`} />

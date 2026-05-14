@@ -43,7 +43,8 @@ export function QACard({
   const toggleDepth = (id: string) =>
     setOpenDepths((p) => {
       const n = new Set(p);
-      n.has(id) ? n.delete(id) : n.add(id);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
       return n;
     });
 

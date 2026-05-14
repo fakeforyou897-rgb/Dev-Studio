@@ -21,7 +21,7 @@ export function CommandPalette({
   const navigate = useNavigate();
   const { prompts, agents, components, templates, snippets } = useForge();
 
-  const go = (to: string, search?: any) => {
+  const go = (to: string, search?: Record<string, unknown>) => {
     onOpenChange(false);
     navigate({ to, search });
   };

@@ -6,7 +6,7 @@ interface TabItem {
   label: string;
   icon?: LucideIcon;
   to?: string;
-  search?: Record<string, any>;
+  search?: Record<string, unknown>;
   onClick?: () => void;
 }
 
