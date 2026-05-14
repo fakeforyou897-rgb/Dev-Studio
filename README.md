@@ -2,15 +2,15 @@
 
 > Personal AI Dev Hub — Save, organize, search and reuse prompts, AI agents, components, templates and snippets — your full-stack dev brain.
 
-## 🚀 Quick Start
+## Quick Start
 
 For a complete 5-minute setup, see our **[Setup Guide](./docs/setup/README.md)**.
 
-## 📚 Documentation
+## Documentation
 
 Detailed documentation is organized in the **[docs folder](./docs/README.md)**.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 Dev-Studio/
