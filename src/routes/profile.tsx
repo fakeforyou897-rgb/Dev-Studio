@@ -4,6 +4,7 @@ import { PageHeader, PageContainer, PageSection } from "@/components/layout";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useForge } from "@/lib/store";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Dev Studio" }] }),
@@ -18,6 +19,7 @@ interface UserProfile {
 
 function ProfilePage() {
   const { user, profile: authProfile, refreshProfile } = useAuth();
+  const { hardReset } = useForge();
   const [form, setForm] = useState<UserProfile>({ displayName: "", avatarUrl: "", location: "" });
   const [saving, setSaving] = useState(false);
 
@@ -124,6 +126,27 @@ function ProfilePage() {
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save Profile"}
+            </button>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-5 shadow-sm space-y-4">
+            <h2 className="text-sm font-semibold tracking-tight text-destructive">Danger Zone</h2>
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Hard Reset Application</p>
+              <p className="text-xs text-muted-foreground">
+                This will clear all local settings, progress, and cache. Use this if you encounter duplicate data or synchronization issues.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                if (confirm("Are you sure? This will reload the app and clear your local progress.")) {
+                  hardReset();
+                }
+              }}
+              className="inline-flex items-center gap-2 bg-destructive text-destructive-foreground text-sm font-medium px-4 py-2 rounded-md hover:opacity-90 transition-opacity"
+            >
+              Reset App Data
             </button>
           </div>
 
