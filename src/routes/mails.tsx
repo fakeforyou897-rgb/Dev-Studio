@@ -106,7 +106,7 @@ function MailsPage() {
               channel={tab}
               activeTemplate={activeMail}
               onUpdateTemplate={handleUpdateMail}
-              onSave={() => console.log("Saved!")}
+              onSave={() => {}}
             />
           </div>
         </SplitLayout>

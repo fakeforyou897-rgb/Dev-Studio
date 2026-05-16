@@ -4,7 +4,7 @@ import {
   prompts, agents, components, templates, snippets,
   connectors, socialDrafts, mailTemplates, interviewQuestions, userProgress, userProfiles
 } from "../shared/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 
 function getUserId(req: Request): string | null {
   const id = req.headers["x-replit-user-id"];
@@ -57,17 +57,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/prompts/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(prompts).where(and(eq(prompts.id, safeId), eq(prompts.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(prompts).set({ ...data, updatedAt: new Date() }).where(eq(prompts.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(prompts).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(prompts).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -102,17 +98,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/agents/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(agents).where(and(eq(agents.id, safeId), eq(agents.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(agents).set({ ...data, updatedAt: new Date() }).where(eq(agents.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(agents).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(agents).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -147,17 +139,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/components/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(components).where(and(eq(components.id, safeId), eq(components.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(components).set({ ...data, updatedAt: new Date() }).where(eq(components.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(components).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(components).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -192,17 +180,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/templates/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(templates).where(and(eq(templates.id, safeId), eq(templates.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(templates).set({ ...data, updatedAt: new Date() }).where(eq(templates.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(templates).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(templates).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -237,17 +221,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/snippets/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(snippets).where(and(eq(snippets.id, safeId), eq(snippets.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(snippets).set({ ...data, updatedAt: new Date() }).where(eq(snippets.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(snippets).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(snippets).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -282,17 +262,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/connectors/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(connectors).where(and(eq(connectors.id, safeId), eq(connectors.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(connectors).set({ ...data, updatedAt: new Date() }).where(eq(connectors.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(connectors).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(connectors).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -327,17 +303,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/social-drafts/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(socialDrafts).where(and(eq(socialDrafts.id, safeId), eq(socialDrafts.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(socialDrafts).set({ ...data, updatedAt: new Date() }).where(eq(socialDrafts.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(socialDrafts).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(socialDrafts).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -372,17 +344,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/mail-templates/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(mailTemplates).where(and(eq(mailTemplates.id, safeId), eq(mailTemplates.userId, uid))) : [];
-      if (existing.length > 0) {
-        const [r] = await db.update(mailTemplates).set({ ...data, updatedAt: new Date() }).where(eq(mailTemplates.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(mailTemplates).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(mailTemplates).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
@@ -396,8 +364,9 @@ export function registerRoutes(app: Express) {
   // --- INTERVIEW QUESTIONS ---
   app.get("/api/interview-questions", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
-    const all = await db.select().from(interviewQuestions);
-    res.json(all.filter(q => q.isGlobal || q.userId === uid));
+    res.json(await db.select().from(interviewQuestions).where(
+      or(eq(interviewQuestions.isGlobal, true), eq(interviewQuestions.userId, uid))
+    ));
   });
 
   app.post("/api/interview-questions", async (req, res) => {
@@ -418,17 +387,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/interview-questions/bulk", async (req, res) => {
     const uid = requireUser(req, res); if (!uid) return;
     const items = req.body as any[];
-    const result = await Promise.all(items.map(async ({ id, ...raw }) => {
+    if (!items.length) { res.json([]); return; }
+    const values = items.map(({ id, ...raw }) => {
       const data = stripDates(raw);
       const safeId = isUUID(id) ? id : undefined;
-      const existing = safeId ? await db.select().from(interviewQuestions).where(eq(interviewQuestions.id, safeId)) : [];
-      if (existing.length > 0 && existing[0].userId === uid) {
-        const [r] = await db.update(interviewQuestions).set(data).where(eq(interviewQuestions.id, safeId!)).returning();
-        return r;
-      }
-      const [r] = await db.insert(interviewQuestions).values({ ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any).returning();
-      return r;
-    }));
+      return { ...data, userId: uid, ...(safeId ? { id: safeId } : {}) } as any;
+    });
+    const result = await db.insert(interviewQuestions).values(values).onConflictDoNothing().returning();
     res.json(result);
   });
 
