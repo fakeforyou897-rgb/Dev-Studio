@@ -21,6 +21,7 @@ export function ResetPasswordForm() {
         </div>
         <Link
           to="/auth"
+          search={{ error: undefined }}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           ← Back to sign in
@@ -57,7 +58,7 @@ export function ResetPasswordForm() {
         </button>
       </form>
       <p className="text-center text-xs text-muted-foreground">
-        <Link to="/auth" className="hover:text-foreground transition-colors">
+        <Link to="/auth" search={{ error: undefined }} className="hover:text-foreground transition-colors">
           ← Back to sign in
         </Link>
       </p>

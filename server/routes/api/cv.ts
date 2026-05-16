@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { db } from "../../db/index.js";
 import { cvProfiles } from "../../../shared/schema.js";
 import { eq, and } from "drizzle-orm";
@@ -34,14 +34,14 @@ function parseCVRow(row: any) {
   };
 }
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const rows = await db.select().from(cvProfiles).where(eq(cvProfiles.userId, uid));
   res.json(rows.map(parseCVRow));
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const { id, personalInfo, experience, skills, education, projects, languages, ...raw } = req.body;
@@ -66,7 +66,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   if (!isUUID(req.params.id)) { res.json({ ok: true }); return; }
@@ -74,7 +74,7 @@ router.delete("/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
-router.post("/ats-check", async (req, res) => {
+router.post("/ats-check", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const { cvProfile, jobDescription } = req.body;
@@ -154,7 +154,7 @@ Be precise, actionable, and focus on what matters for ATS systems (keyword densi
   }
 });
 
-router.post("/parse-pdf", async (req, res) => {
+router.post("/parse-pdf", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const { fileBase64 } = req.body;

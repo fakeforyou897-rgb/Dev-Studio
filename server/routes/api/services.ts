@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { db } from "../../db/index.js";
 import { myServices } from "../../../shared/schema.js";
 import { eq, and } from "drizzle-orm";
@@ -6,12 +6,12 @@ import { requireUser, stripDates, isUUID } from "../../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res); if (!uid) return;
   res.json(await db.select().from(myServices).where(eq(myServices.userId, uid)));
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res); if (!uid) return;
   const { id, ...raw } = req.body;
   const data = stripDates(raw);
@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
   res.json(r);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response) => {
   const uid = requireUser(req, res); if (!uid) return;
   if (!isUUID(req.params.id)) { res.json({ ok: true }); return; }
   await db.delete(myServices).where(and(eq(myServices.id, req.params.id), eq(myServices.userId, uid)));

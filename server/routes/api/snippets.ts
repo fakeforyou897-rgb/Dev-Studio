@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { db } from "../../db/index.js";
 import { snippets } from "../../../shared/schema.js";
 import { eq, and } from "drizzle-orm";
@@ -6,13 +6,13 @@ import { requireUser, stripDates, isUUID } from "../../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   res.json(await db.select().from(snippets).where(eq(snippets.userId, uid)));
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const { id, ...raw } = req.body;
@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.post("/bulk", async (req, res) => {
+router.post("/bulk", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const items = req.body as any[];
@@ -46,7 +46,7 @@ router.post("/bulk", async (req, res) => {
   res.json(result);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   if (!isUUID(req.params.id)) {

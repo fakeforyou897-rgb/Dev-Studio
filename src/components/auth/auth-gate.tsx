@@ -28,7 +28,7 @@ export function AuthGate() {
 
   useEffect(() => {
     if (isReady && !user && !isPublic) {
-      router.navigate({ to: "/auth", replace: true }).catch((err) => {
+      router.navigate({ to: "/auth", search: { error: undefined }, replace: true }).catch((err) => {
         console.error("[AuthGate] Navigation to /auth failed:", err);
       });
     }

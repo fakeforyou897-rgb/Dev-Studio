@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import OpenAI from "openai";
 
 const router = Router();
@@ -10,7 +10,7 @@ function getOpenAI() {
   });
 }
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const { prompt, systemPrompt, config } = req.body;
 

@@ -53,10 +53,10 @@ function Index() {
   const whatsappTemplates = mailTemplates.filter((m) => m.channel === "whatsapp").length;
 
   const toolStats = [
-    { label: "Prompts",      value: prompts.length,      hint: "in library",         icon: Sparkles,       to: "/tools" as const, tab: "prompts"    },
-    { label: "Agents",       value: activeAgents,         hint: `${agents.length} total`,  icon: Bot,       to: "/tools" as const, tab: "agents"     },
-    { label: "Components",   value: components.length,    hint: "ready to reuse",     icon: ComponentIcon,  to: "/tools" as const, tab: "components" },
-    { label: "Templates",    value: templates.length,     hint: `${snippets.length} snippets`, icon: LayoutTemplate, to: "/tools" as const, tab: "templates" },
+    { label: "Prompts",      value: prompts.length,      hint: "in library",         icon: Sparkles,       to: "/tools" as const, tab: "prompts" as const    },
+    { label: "Agents",       value: activeAgents,         hint: `${agents.length} total`,  icon: Bot,       to: "/tools" as const, tab: "agents" as const     },
+    { label: "Components",   value: components.length,    hint: "ready to reuse",     icon: ComponentIcon,  to: "/tools" as const, tab: "components" as const },
+    { label: "Templates",    value: templates.length,     hint: `${snippets.length} snippets`, icon: LayoutTemplate, to: "/tools" as const, tab: "templates" as const },
   ];
 
   const networkStats = [

@@ -28,7 +28,7 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 });
 
 export type Conversation = typeof conversations.$inferSelect;
-export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type InsertConversation = typeof conversations.$inferInsert;
 export type Message = typeof messages.$inferSelect;
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type InsertMessage = typeof messages.$inferInsert;
 

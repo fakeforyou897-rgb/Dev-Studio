@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { db } from "../../db/index.js";
 import { plannerTasks } from "../../../shared/schema.js";
 import { eq, and, gte, lte } from "drizzle-orm";
@@ -29,7 +29,7 @@ function parseRow(row: any) {
   };
 }
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const { from, to } = req.query as { from?: string; to?: string };
@@ -48,7 +48,7 @@ router.get("/", async (req, res) => {
   res.json(rows.map(parseRow));
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const { id, ...raw } = req.body;
@@ -72,7 +72,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   if (!isUUID(req.params.id)) { res.json({ ok: true }); return; }
@@ -82,7 +82,7 @@ router.delete("/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
-router.post("/suggest", async (req, res) => {
+router.post("/suggest", async (req: Request, res: Response) => {
   const uid = requireUser(req, res);
   if (!uid) return;
   const { date, tasks } = req.body;
