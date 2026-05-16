@@ -9,11 +9,11 @@ export function UserMenu({ isCollapsed }: { isCollapsed?: boolean }) {
   const displayName = profile.displayName || user?.name || "Account";
 
   return (
-    <div className={`mt-3 flex items-center ${isCollapsed ? "justify-center" : "gap-2 px-1"}`}>
+    <div className={`flex items-center rounded-xl ${isCollapsed ? "justify-center p-1" : "gap-2 px-2 py-1.5 hover:bg-muted/40 transition-colors"}`}>
       <Link
         to="/profile"
         title={isCollapsed ? displayName : undefined}
-        className={`flex items-center group ${isCollapsed ? "justify-center" : "gap-2.5 flex-1 min-w-0"}`}
+        className={`flex items-center group ${isCollapsed ? "justify-center" : "gap-2 flex-1 min-w-0"}`}
       >
         <UserAvatar name={displayName} avatarUrl={profile.avatarUrl} size="sm" />
         {!isCollapsed && (
@@ -31,7 +31,7 @@ export function UserMenu({ isCollapsed }: { isCollapsed?: boolean }) {
         <button
           onClick={signOut}
           title="Sign out"
-          className="size-7 grid place-items-center rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 transition-all active:scale-90 shrink-0"
+          className="size-7 grid place-items-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-90 shrink-0"
         >
           <LogOut className="size-3.5" />
         </button>

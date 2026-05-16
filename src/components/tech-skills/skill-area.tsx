@@ -5,6 +5,7 @@ import { OverviewSection } from "./overview-section";
 import { ChecklistSection } from "./checklist-section";
 import { InterviewSection } from "./interview-section";
 import { ResourcesSection } from "./resources-section";
+import { SplitLayout } from "../layout";
 
 type SectionId = "overview" | "checklist" | "interview" | "resources";
 
@@ -14,8 +15,6 @@ const SECTIONS: { id: SectionId; label: string; icon: React.ElementType }[] = [
   { id: "interview", label: "Interview Q&A", icon: GraduationCap },
   { id: "resources", label: "Resources", icon: ExternalLink },
 ];
-
-import { SplitLayout } from "../layout";
 
 export function SkillArea({
   data,
@@ -31,31 +30,26 @@ export function SkillArea({
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (activeSubArea) {
-      setSubArea(activeSubArea);
-    }
+    if (activeSubArea) setSubArea(activeSubArea);
   }, [activeSubArea]);
 
-  const filteredSubAreas = data.subAreas?.filter(sa =>
+  const filteredSubAreas = data.subAreas?.filter((sa) =>
     sa.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sidebar = (
     <div className="h-full flex flex-col min-h-0">
-      <div className="p-6 pb-2 sticky top-0 bg-background/80 backdrop-blur-md z-20 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-            <data.icon className="size-5" />
+      <div className="px-3 py-2.5 border-b border-border/60 shrink-0 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="size-7 rounded-xl bg-primary/10 grid place-items-center text-primary shrink-0">
+            <data.icon className="size-3.5" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold">{data.label}</h3>
-            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-              Focus Area
-            </p>
-          </div>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/60 truncate">
+            {data.label}
+          </span>
         </div>
 
-        <nav className="space-y-1">
+        <nav className="space-y-0.5">
           {SECTIONS.map((s) => {
             const Icon = s.icon;
             const active = activeSection === s.id;
@@ -63,15 +57,13 @@ export function SkillArea({
               <button
                 key={s.id}
                 onClick={() => setActiveSection(s.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-card hover:text-foreground"
+                    ? "bg-primary/10 text-primary ring-1 ring-primary/20"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 }`}
               >
-                <span className="shrink-0">
-                  <Icon className="size-3.5" />
-                </span>
+                <Icon className="size-3.5 shrink-0" />
                 {s.label}
               </button>
             );
@@ -79,26 +71,26 @@ export function SkillArea({
         </nav>
 
         {data.subAreas && (
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Filter topics..."
+              placeholder="Filter topics…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-card/50 border border-border rounded-lg py-1.5 pl-9 pr-3 text-[11px] outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary/50 transition-all"
+              className="w-full bg-muted/40 border border-border/60 rounded-xl py-1.5 pl-8 pr-3 text-xs outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary/40 transition-all"
             />
           </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
         {data.subAreas && (
-          <div className="mt-2">
-            <h4 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-3 mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-1 z-10">
+          <div>
+            <p className="px-3 pt-2 pb-1 text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/60">
               {data.id === "softskills" ? "Topics" : "Stacks / Frameworks"}
-            </h4>
-            <nav className="space-y-1">
+            </p>
+            <nav className="space-y-0.5">
               {filteredSubAreas?.map((sa) => {
                 const SaIcon = sa.icon;
                 const active = subArea === sa.id;
@@ -106,22 +98,22 @@ export function SkillArea({
                   <button
                     key={sa.id}
                     onClick={() => setSubArea(sa.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                       active
-                        ? "bg-card text-foreground border border-border shadow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-card/30"
+                        ? "bg-primary/10 text-primary ring-1 ring-primary/20"
+                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      {SaIcon && <SaIcon className="size-3" />}
-                      {sa.label}
+                      {SaIcon && <SaIcon className="size-3 shrink-0" />}
+                      <span className={active ? "text-foreground" : ""}>{sa.label}</span>
                     </div>
-                    {active && <ChevronRight className="size-3 text-primary" />}
+                    {active && <ChevronRight className="size-3 text-primary shrink-0" />}
                   </button>
                 );
               })}
               {filteredSubAreas?.length === 0 && (
-                <p className="text-[10px] text-center text-muted-foreground py-4 italic">
+                <p className="text-[10px] text-center text-muted-foreground py-6 italic">
                   No matching topics found
                 </p>
               )}
@@ -133,7 +125,7 @@ export function SkillArea({
   );
 
   return (
-    <SplitLayout sidebar={sidebar} sidebarWidth="lg:w-[260px]" className="border-t border-border">
+    <SplitLayout sidebar={sidebar} sidebarWidth="lg:w-[260px]">
       <div className="overflow-y-auto scrollbar-thin h-full w-full">
         <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-10">
           {activeSection === "overview" && (

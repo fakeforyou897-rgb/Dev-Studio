@@ -10,7 +10,7 @@ export function PageSection({ children, className }: PageSectionProps) {
   return (
     <div
       className={cn(
-        "px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-border bg-background shrink-0",
+        "px-4 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-border/60 bg-background shrink-0",
         className
       )}
     >

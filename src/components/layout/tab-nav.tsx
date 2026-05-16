@@ -19,66 +19,62 @@ interface TabNavProps {
 
 export function TabNav({ tabs, activeTab, className = "" }: TabNavProps) {
   return (
-    <div className={`w-full overflow-x-auto pb-2 -mb-2 ${className}`}>
-      <div className="flex w-max min-w-full sm:justify-center">
+    <div className={`w-full overflow-x-auto ${className}`}>
+      <div className="flex w-max min-w-full sm:justify-start">
         <div className="w-1 shrink-0 sm:hidden" />
 
         <nav
-          className="flex shrink-0 items-center gap-1.5 p-1 bg-muted/30 border border-border rounded-lg"
+          className="flex shrink-0 items-center gap-1 p-1 bg-muted/40 border border-border/60 rounded-2xl"
           aria-label="Tabs"
         >
-          <div className="flex items-center gap-1.5 px-0.5">
-            {tabs.map((tab) => {
-              const active = activeTab === tab.id;
-              const Icon = tab.icon;
+          {tabs.map((tab) => {
+            const active = activeTab === tab.id;
+            const Icon = tab.icon;
 
-              const content = (
-                <>
-                  {Icon && (
-                    <Icon
-                      className={`size-3.5 transition-colors ${
-                        active
-                          ? "text-primary-foreground"
-                          : "text-muted-foreground group-hover:text-foreground"
-                      }`}
-                    />
-                  )}
-                  <span className="relative z-10">{tab.label}</span>
-                  {tab.badge != null && tab.badge !== 0 && (
-                    <span
-                      className={`min-w-[16px] text-center text-[10px] leading-none px-1 py-0.5 rounded ${
-                        active
-                          ? "bg-primary-foreground/20 text-primary-foreground"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {tab.badge}
-                    </span>
-                  )}
-                </>
-              );
+            const content = (
+              <>
+                {Icon && (
+                  <Icon
+                    className={`size-3.5 shrink-0 transition-colors ${
+                      active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    }`}
+                  />
+                )}
+                <span className="relative z-10 whitespace-nowrap">{tab.label}</span>
+                {tab.badge != null && tab.badge !== 0 && (
+                  <span
+                    className={`min-w-[16px] text-center text-[10px] leading-none px-1 py-0.5 rounded-full ${
+                      active
+                        ? "bg-primary/20 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </>
+            );
 
-              const baseClass = `group flex items-center gap-2 px-4 py-2 text-[10px] font-mono uppercase tracking-widest transition-all rounded-md border whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                active
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm font-semibold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted border-transparent focus-visible:border-border"
-              }`;
+            const baseClass = `group flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-xl whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+              active
+                ? "bg-background text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/60"
+            }`;
 
-              if (tab.to) {
-                return (
-                  <Link key={tab.id} to={tab.to} search={tab.search} className={baseClass}>
-                    {content}
-                  </Link>
-                );
-              }
-
+            if (tab.to) {
               return (
-                <button key={tab.id} onClick={tab.onClick} className={baseClass}>
+                <Link key={tab.id} to={tab.to} search={tab.search} className={baseClass}>
                   {content}
-                </button>
+                </Link>
               );
-            })}
-          </div>
+            }
+
+            return (
+              <button key={tab.id} onClick={tab.onClick} className={baseClass}>
+                {content}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="w-4 shrink-0 sm:hidden" />
