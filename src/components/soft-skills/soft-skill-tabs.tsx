@@ -7,6 +7,7 @@ import {
   Clock,
   Sparkles,
   Brain,
+  MessageSquare,
 } from "lucide-react";
 import { TabNav } from "@/components/layout";
 
@@ -18,6 +19,7 @@ const TABS = [
   { id: "time",            label: "Time Management",  icon: Clock },
   { id: "growth",          label: "Growth Mindset",   icon: Sparkles },
   { id: "mental-models",   label: "Mental Models",    icon: Brain },
+  { id: "ai-mock",         label: "AI Mock Chat",     icon: MessageSquare },
 ] as const;
 
 export function SoftSkillTabs() {
