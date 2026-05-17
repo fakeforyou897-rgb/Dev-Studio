@@ -1,3 +1,6 @@
+import type { LucideIcon } from "lucide-react";
+import { Sunrise, Briefcase, BookOpen, Zap, ShieldCheck, Database, FileCode2, Monitor } from "lucide-react";
+
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in-progress" | "done";
 export type TaskCategory = "activities" | "work" | "learning" | "general";
@@ -23,11 +26,11 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
   general:    "General",
 };
 
-export const CATEGORY_ICONS: Record<TaskCategory, string> = {
-  activities: "🌅",
-  work:       "💼",
-  learning:   "📚",
-  general:    "⚡",
+export const CATEGORY_ICON_COMPONENTS: Record<TaskCategory, LucideIcon> = {
+  activities: Sunrise,
+  work:       Briefcase,
+  learning:   BookOpen,
+  general:    Zap,
 };
 
 export const CATEGORY_COLORS: Record<TaskCategory, string> = {
@@ -76,7 +79,7 @@ export interface WeekTheme {
   week: number;
   title: string;
   subtitle: string;
-  icon: string;
+  icon: LucideIcon;
   color: string;
   tags: string[];
 }
@@ -86,7 +89,7 @@ export const WEEK_THEMES: WeekTheme[] = [
     week: 1,
     title: "DevOps & Security",
     subtitle: "Infrastructure, CI/CD, Cyber",
-    icon: "🔐",
+    icon: ShieldCheck,
     color: "text-rose-600 bg-rose-500/10 border-rose-500/20",
     tags: ["Docker", "CI/CD", "Linux", "Nginx", "SSH", "Firewall", "Secrets"],
   },
@@ -94,7 +97,7 @@ export const WEEK_THEMES: WeekTheme[] = [
     week: 2,
     title: "Database & Scraping",
     subtitle: "SQL, NoSQL, Data pipelines",
-    icon: "🗄️",
+    icon: Database,
     color: "text-cyan-600 bg-cyan-500/10 border-cyan-500/20",
     tags: ["PostgreSQL", "Redis", "Playwright", "ETL", "SQL", "Indexing"],
   },
@@ -102,7 +105,7 @@ export const WEEK_THEMES: WeekTheme[] = [
     week: 3,
     title: "Code & Materials",
     subtitle: "Algorithms, Clean code, DSA",
-    icon: "📝",
+    icon: FileCode2,
     color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
     tags: ["Refactoring", "DSA", "Patterns", "LeetCode", "Review", "Docs"],
   },
@@ -110,7 +113,7 @@ export const WEEK_THEMES: WeekTheme[] = [
     week: 4,
     title: "Frontend Frameworks",
     subtitle: "React, Next.js, UI/UX",
-    icon: "⚛️",
+    icon: Monitor,
     color: "text-violet-600 bg-violet-500/10 border-violet-500/20",
     tags: ["React", "Next.js", "Tailwind", "State", "A11y", "Performance"],
   },

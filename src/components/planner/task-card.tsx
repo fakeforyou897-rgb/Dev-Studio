@@ -1,6 +1,6 @@
 import { Check, Trash2, ChevronRight, Clock, Pencil, GripVertical } from "lucide-react";
 import type { PlannerTask } from "@/types/planner";
-import { PRIORITY_COLORS, CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICONS, formatMinutes } from "@/types/planner";
+import { PRIORITY_COLORS, CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICON_COMPONENTS, formatMinutes } from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -38,6 +38,7 @@ export function TaskCard({ task, onToggle, onDelete, onEdit, dragOverlay }: Task
   const isDone = task.status === "done";
   const isInProgress = task.status === "in-progress";
   const cfg = STATUS_CONFIG[task.status];
+  const CatIcon = CATEGORY_ICON_COMPONENTS[task.category];
 
   const {
     attributes,
@@ -117,7 +118,7 @@ export function TaskCard({ task, onToggle, onDelete, onEdit, dragOverlay }: Task
             "text-[10px] font-medium px-1.5 py-0.5 rounded-md flex items-center gap-1",
             CATEGORY_COLORS[task.category]
           )}>
-            <span className="text-[11px]">{CATEGORY_ICONS[task.category]}</span>
+            <CatIcon className="size-3" />
             {CATEGORY_LABELS[task.category]}
           </span>
 

@@ -1,112 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Moon, MapPin, RefreshCw, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface PrayerTime {
-  name: string;
-  arabicName: string;
-  time: string;
-  emoji: string;
-}
+import { usePrayerTimes } from "@/hooks/use-prayer-times";
+import { to24hMin, formatCountdown, toDateStr } from "@/lib/planner-utils";
 
 interface PrayerTimesProps {
   date: string;
-  onPrayerTimesLoaded?: (prayers: PrayerTime[]) => void;
+  onPrayerTimesLoaded?: (prayers: ReturnType<typeof usePrayerTimes>["prayers"]) => void;
 }
 
-const PRAYER_KEYS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
-const PRAYER_META: Record<string, { arabic: string; emoji: string }> = {
-  Fajr:    { arabic: "الفجر",   emoji: "🌙" },
-  Dhuhr:   { arabic: "الظهر",   emoji: "☀️" },
-  Asr:     { arabic: "العصر",   emoji: "🌤" },
-  Maghrib: { arabic: "المغرب",  emoji: "🌅" },
-  Isha:    { arabic: "العشاء",  emoji: "🌃" },
-};
-
-function to24hMinutes(time: string): number {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function formatCountdown(diffMin: number): string {
-  if (diffMin <= 0) return "Now";
-  const h = Math.floor(diffMin / 60);
-  const m = diffMin % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-export function PrayerTimes({ date, onPrayerTimesLoaded }: PrayerTimesProps) {
-  const [prayers, setPrayers] = useState<PrayerTime[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function PrayerTimes({ date, onPrayerTimesLoaded: _ }: PrayerTimesProps) {
   const [open, setOpen] = useState(true);
-  const [cityLabel, setCityLabel] = useState<string>("");
-  const [now, setNow] = useState(() => new Date());
+  const { prayers, loading, error, city, nextIdx, nowMin, refresh } = usePrayerTimes(date);
 
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(t);
-  }, []);
-
-  const fetchByCoords = useCallback(async (lat: number, lng: number, label: string) => {
-    setLoading(true);
-    setError(null);
-    setCityLabel(label);
-    try {
-      const [day, month, year] = [
-        date.slice(8, 10),
-        date.slice(5, 7),
-        date.slice(0, 4),
-      ];
-      const url = `https://api.aladhan.com/v1/timings/${day}-${month}-${year}?latitude=${lat}&longitude=${lng}&method=4`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch prayer times");
-      const json = await res.json();
-      const timings = json.data?.timings;
-      if (!timings) throw new Error("Invalid response");
-      const parsed: PrayerTime[] = PRAYER_KEYS.map((key) => ({
-        name: key,
-        arabicName: PRAYER_META[key].arabic,
-        time: timings[key],
-        emoji: PRAYER_META[key].emoji,
-      }));
-      setPrayers(parsed);
-      onPrayerTimesLoaded?.(parsed);
-    } catch (e: any) {
-      setError(e.message || "Could not load prayer times");
-    } finally {
-      setLoading(false);
-    }
-  }, [date, onPrayerTimesLoaded]);
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
-            .then((r) => r.json())
-            .then((data) => {
-              const city = data.address?.city || data.address?.town || data.address?.state || "Your location";
-              fetchByCoords(latitude, longitude, city);
-            })
-            .catch(() => fetchByCoords(latitude, longitude, "Your location"));
-        },
-        () => fetchByCoords(21.3891, 39.8579, "Mecca")
-      );
-    } else {
-      fetchByCoords(21.3891, 39.8579, "Mecca");
-    }
-  }, [date]);
-
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const isToday = date === new Date().toISOString().slice(0, 10);
-
-  let nextPrayerIdx = -1;
-  if (isToday && prayers.length > 0) {
-    nextPrayerIdx = prayers.findIndex((p) => to24hMinutes(p.time) > nowMinutes);
-    if (nextPrayerIdx === -1) nextPrayerIdx = 0;
-  }
+  const isToday = date === toDateStr(new Date());
+  const nextPrayerIdx = isToday ? nextIdx : -1;
 
   return (
     <div className={cn(
@@ -128,8 +36,8 @@ export function PrayerTimes({ date, onPrayerTimesLoaded }: PrayerTimesProps) {
             Prayer Times
           </p>
           <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-            {cityLabel ? (
-              <><MapPin className="size-2.5 shrink-0" />{cityLabel}</>
+            {city ? (
+              <><MapPin className="size-2.5 shrink-0" />{city}</>
             ) : "Azan schedule"}
           </p>
         </div>
@@ -158,8 +66,8 @@ export function PrayerTimes({ date, onPrayerTimesLoaded }: PrayerTimesProps) {
 
           {!loading && !error && prayers.map((prayer, i) => {
             const isNext = isToday && i === nextPrayerIdx;
-            const isPast = isToday && to24hMinutes(prayer.time) < nowMinutes;
-            const diff = isNext ? to24hMinutes(prayer.time) - nowMinutes : 0;
+            const isPast = isToday && to24hMin(prayer.time) < nowMin;
+            const diff = isNext ? to24hMin(prayer.time) - nowMin : 0;
 
             return (
               <div
@@ -174,7 +82,7 @@ export function PrayerTimes({ date, onPrayerTimesLoaded }: PrayerTimesProps) {
                 )}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-base leading-none">{prayer.emoji}</span>
+                  <prayer.Icon className={cn("size-4 shrink-0", isNext ? "text-primary-foreground" : prayer.iconColor)} />
                   <div>
                     <p className={cn(
                       "text-xs font-semibold",
@@ -213,12 +121,7 @@ export function PrayerTimes({ date, onPrayerTimesLoaded }: PrayerTimesProps) {
 
           {!loading && !error && prayers.length > 0 && (
             <button
-              onClick={() => {
-                navigator.geolocation?.getCurrentPosition(
-                  (pos) => fetchByCoords(pos.coords.latitude, pos.coords.longitude, cityLabel),
-                  () => {}
-                );
-              }}
+              onClick={refresh}
               className="w-full mt-1 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground hover:text-primary transition-colors py-1 rounded-lg hover:bg-primary/5"
             >
               <RefreshCw className="size-2.5" /> Refresh

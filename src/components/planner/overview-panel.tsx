@@ -1,7 +1,8 @@
 import { CheckCircle2, Circle, Clock, TrendingUp, Flame, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlannerTask } from "@/types/planner";
-import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICONS } from "@/types/planner";
+import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICON_COMPONENTS } from "@/types/planner";
+import { toDateStr, addDays } from "@/lib/planner-utils";
 
 interface OverviewPanelProps {
   tasks: PlannerTask[];
@@ -9,16 +10,6 @@ interface OverviewPanelProps {
 }
 
 const DAY_NAMES = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
-
-function toDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
-}
 
 export function OverviewPanel({ tasks, weekStart }: OverviewPanelProps) {
   const today = toDateStr(new Date());
@@ -169,13 +160,14 @@ export function OverviewPanel({ tasks, weekStart }: OverviewPanelProps) {
             <div className="space-y-3">
               {categoryBreakdown.map(({ cat, total, done }) => {
                 const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                const CatIcon = CATEGORY_ICON_COMPONENTS[cat];
                 return (
                   <div key={cat} className="flex items-center gap-3">
                     <div className={cn(
                       "text-[10px] font-semibold px-2 py-1 rounded-lg flex items-center gap-1 shrink-0 w-28",
                       CATEGORY_COLORS[cat]
                     )}>
-                      <span className="text-[12px]">{CATEGORY_ICONS[cat]}</span>
+                      <CatIcon className="size-3.5" />
                       {CATEGORY_LABELS[cat]}
                     </div>
                     <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">

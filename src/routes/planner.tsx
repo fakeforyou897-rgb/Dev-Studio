@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import {
   CalendarDays, Plus, CheckCircle2, Circle, Clock,
-  LayoutGrid, Archive, ChevronDown, Sparkles,
+  LayoutGrid, Archive, ChevronDown, Sparkles, Dumbbell,
 } from "lucide-react";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
@@ -21,32 +21,28 @@ import { OverviewPanel } from "@/components/planner/overview-panel";
 import { getPlannerTasks, upsertPlannerTask, deletePlannerTask } from "@/lib/api/planner";
 import type { PlannerTask, TaskStatus, TaskCategory } from "@/types/planner";
 import {
-  CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_SECTION_STYLES,
+  CATEGORY_LABELS, CATEGORY_ICON_COMPONENTS, CATEGORY_SECTION_STYLES,
   DAILY_PARTS, getWeekTheme, normCategory,
 } from "@/types/planner";
+import { toDateStr, addDays } from "@/lib/planner-utils";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SplitLayout } from "@/components/layout";
 import { PageContainer, PageSection } from "@/components/layout";
+import { ActivitiesTab } from "@/components/activities/activities-tab";
 
 export const Route = createFileRoute("/planner")({
   component: PlannerPage,
 });
 
-type Tab = "schedule" | "overview" | "backlog";
+type Tab = "schedule" | "overview" | "backlog" | "activities";
 
-function toDateStr(d: Date) { return d.toISOString().slice(0, 10); }
 function getWeekStart(d: Date) {
   const r = new Date(d);
   const day = r.getDay(); // 0=Sun … 6=Sat
   const diff = (day - 6 + 7) % 7; // days since last Saturday
   r.setDate(r.getDate() - diff);
   r.setHours(0, 0, 0, 0);
-  return r;
-}
-function addDays(d: Date, n: number) {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
   return r;
 }
 function formatDayTitle(dateStr: string) {
@@ -68,9 +64,10 @@ const STATUS_CYCLE: Record<TaskStatus, TaskStatus> = {
 };
 
 const TABS: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
-  { id: "schedule", label: "Schedule", icon: CalendarDays },
-  { id: "overview", label: "Overview", icon: LayoutGrid  },
-  { id: "backlog",  label: "Backlog",  icon: Archive     },
+  { id: "schedule",   label: "Schedule",   icon: CalendarDays },
+  { id: "overview",   label: "Overview",   icon: LayoutGrid   },
+  { id: "backlog",    label: "Backlog",    icon: Archive      },
+  { id: "activities", label: "Activities", icon: Dumbbell     },
 ];
 
 /* ─────────────────────────────────────────────────────── */
@@ -99,6 +96,7 @@ function SectionGroup({
   const styles = CATEGORY_SECTION_STYLES[category];
   const done = tasks.filter((t) => t.status === "done").length;
   const pct  = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+  const SectionIcon = CATEGORY_ICON_COMPONENTS[category];
 
   return (
     <div className={cn("rounded-2xl border overflow-hidden", styles.border)}>
@@ -110,7 +108,7 @@ function SectionGroup({
           styles.bg, "hover:brightness-[0.97]"
         )}
       >
-        <span className="text-base">{CATEGORY_ICONS[category]}</span>
+        <SectionIcon className={cn("size-4 shrink-0", styles.label)} />
         <span className={cn("text-xs font-bold flex-1 text-left", styles.label)}>
           {CATEGORY_LABELS[category]}
         </span>
@@ -454,7 +452,7 @@ export default function PlannerPage() {
                       "inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold",
                       weekTheme.color
                     )}>
-                      <span>{weekTheme.icon}</span>
+                      <weekTheme.icon className="size-3.5" />
                       <span>W{weekTheme.week}: {weekTheme.title}</span>
                     </div>
 
@@ -596,6 +594,9 @@ export default function PlannerPage() {
               )}
             </div>
           )}
+
+          {/* ── ACTIVITIES ── */}
+          {tab === "activities" && <ActivitiesTab />}
 
         </SplitLayout>
       </div>
