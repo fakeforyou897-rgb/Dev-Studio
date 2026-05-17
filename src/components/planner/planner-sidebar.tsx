@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ChevronLeft, ChevronRight, CalendarDays, Plus, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlannerTask } from "@/types/planner";
@@ -11,6 +12,7 @@ interface PlannerSidebarProps {
   onNextWeek: () => void;
   onToday: () => void;
   onAddTask: () => void;
+  extraBottom?: React.ReactNode;
 }
 
 function toDateStr(d: Date): string {
@@ -35,6 +37,7 @@ export function PlannerSidebar({
   onNextWeek,
   onToday,
   onAddTask,
+  extraBottom,
 }: PlannerSidebarProps) {
   const today = toDateStr(new Date());
   const weekEnd = addDays(weekStart, 6);
@@ -184,7 +187,7 @@ export function PlannerSidebar({
       </div>
 
       {/* Add task CTA */}
-      <div className="px-2.5 pb-2.5 shrink-0">
+      <div className="px-2.5 pb-2.5 shrink-0 space-y-2">
         <button
           onClick={onAddTask}
           className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.98] text-xs font-semibold transition-all shadow-sm"
@@ -192,6 +195,7 @@ export function PlannerSidebar({
           <Plus className="size-3.5" />
           Add Task
         </button>
+        {extraBottom}
       </div>
     </div>
   );

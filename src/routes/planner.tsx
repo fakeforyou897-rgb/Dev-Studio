@@ -4,12 +4,30 @@ import {
   CalendarDays, Plus, CheckCircle2, Circle, Clock,
   LayoutGrid, Archive, ListFilter,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 import { PlannerSidebar } from "@/components/planner/planner-sidebar";
 import { TaskCard } from "@/components/planner/task-card";
 import { AddTaskForm } from "@/components/planner/add-task-form";
 import { EditTaskDialog } from "@/components/planner/edit-task-dialog";
 import { AISuggestionsPanel } from "@/components/planner/ai-suggestions-panel";
 import { OverviewPanel } from "@/components/planner/overview-panel";
+import { PrayerTimes } from "@/components/planner/prayer-times";
 import { getPlannerTasks, upsertPlannerTask, deletePlannerTask } from "@/lib/api/planner";
 import type { PlannerTask, TaskStatus } from "@/types/planner";
 import { toast } from "sonner";
@@ -82,6 +100,7 @@ export default function PlannerPage() {
   const [editingTask, setEditingTask] = useState<PlannerTask | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [activeTask, setActiveTask] = useState<PlannerTask | null>(null);
 
   const weekEnd = addDays(weekStart, 6);
 
@@ -148,6 +167,45 @@ export default function PlannerPage() {
     }
   };
 
+  /* ── Drag & Drop ─────────────────────────────────────── */
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find((t) => t.id === event.active.id);
+    setActiveTask(task ?? null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const dayTasks = tasks.filter((t) => t.date === selectedDate);
+    const oldIndex = dayTasks.findIndex((t) => t.id === active.id);
+    const newIndex = dayTasks.findIndex((t) => t.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(dayTasks, oldIndex, newIndex).map((t, i) => ({
+      ...t,
+      order: i,
+    }));
+
+    setTasks((prev) => {
+      const others = prev.filter((t) => t.date !== selectedDate);
+      return [...others, ...reordered];
+    });
+
+    try {
+      await Promise.all(reordered.map((t) => upsertPlannerTask(t)));
+    } catch {
+      toast.error("Failed to save order");
+      fetchTasks();
+    }
+  };
+
   const handlePrevWeek = () => setWeekStart((w) => addDays(w, -7));
   const handleNextWeek = () => setWeekStart((w) => addDays(w, 7));
   const handleToday = () => {
@@ -176,11 +234,11 @@ export default function PlannerPage() {
     ? allSortedTasks
     : allSortedTasks.filter((t) => t.status === filterStatus);
 
-  const totalCount     = dayTasks.length;
-  const doneCount      = doneTasks.length;
-  const completionPct  = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+  const totalCount    = dayTasks.length;
+  const doneCount     = doneTasks.length;
+  const completionPct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
-  /* ── Sidebar passed into SplitLayout ────────────────── */
+  /* ── Sidebar ─────────────────────────────────────────── */
   const plannerSidebar = (
     <PlannerSidebar
       selectedDate={selectedDate}
@@ -191,21 +249,18 @@ export default function PlannerPage() {
       onNextWeek={handleNextWeek}
       onToday={handleToday}
       onAddTask={() => { setTab("schedule"); setShowAddForm(true); }}
+      extraBottom={<PrayerTimes date={selectedDate} />}
     />
   );
 
   return (
     <PageContainer>
-
-      {/* ── Header card — identical pattern to all pages ── */}
+      {/* ── Header ── */}
       <PageSection>
         <div className="flex items-center gap-3">
-          {/* Icon */}
           <div className="size-9 sm:size-10 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
             <CalendarDays className="size-[18px] sm:size-5 text-primary" />
           </div>
-
-          {/* Title */}
           <div className="min-w-0">
             <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/60 mb-0.5">
               Workspace
@@ -213,7 +268,6 @@ export default function PlannerPage() {
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight leading-tight">Planner</h1>
           </div>
 
-          {/* Tab nav */}
           <nav className="hidden sm:flex items-center gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 ml-2">
             {TABS.map((t) => {
               const Icon = t.icon;
@@ -245,7 +299,6 @@ export default function PlannerPage() {
             })}
           </nav>
 
-          {/* Filter pills */}
           {tab === "schedule" && (
             <div className="hidden md:flex items-center gap-1 p-1 bg-muted/30 rounded-xl border border-border/40">
               <ListFilter className="size-3 text-muted-foreground ml-1 mr-0.5 shrink-0" />
@@ -273,7 +326,6 @@ export default function PlannerPage() {
             </div>
           )}
 
-          {/* New Task */}
           <button
             onClick={() => { setTab("schedule"); setShowAddForm(true); }}
             className="ml-auto inline-flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 rounded-xl hover:opacity-90 active:scale-[0.97] transition-all shadow-sm shrink-0"
@@ -314,7 +366,7 @@ export default function PlannerPage() {
         </div>
       </PageSection>
 
-      {/* ── Split layout — same as every other page ──────── */}
+      {/* ── Split layout ── */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <SplitLayout sidebar={plannerSidebar} sidebarWidth="lg:w-[260px]">
 
@@ -377,7 +429,6 @@ export default function PlannerPage() {
                     </div>
                   </div>
 
-                  {/* Completion ring */}
                   {totalCount > 0 && (
                     <div className="shrink-0 relative size-11">
                       <svg className="size-11 -rotate-90" viewBox="0 0 36 36">
@@ -406,7 +457,7 @@ export default function PlannerPage() {
                 )}
               </div>
 
-              {/* Task list */}
+              {/* Task list with DnD */}
               <div className="flex-1 overflow-y-auto scrollbar-thin px-4 sm:px-5 py-3 space-y-2">
                 {loading ? (
                   <div className="py-12 text-center space-y-2">
@@ -424,15 +475,40 @@ export default function PlannerPage() {
                     <p className="text-sm text-muted-foreground">No {filterStatus} tasks today</p>
                   </div>
                 ) : (
-                  filteredTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onToggle={handleToggle}
-                      onDelete={handleDelete}
-                      onEdit={setEditingTask}
-                    />
-                  ))
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={filteredTasks.map((t) => t.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {filteredTasks.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onToggle={handleToggle}
+                            onDelete={handleDelete}
+                            onEdit={setEditingTask}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                    <DragOverlay>
+                      {activeTask && (
+                        <TaskCard
+                          task={activeTask}
+                          onToggle={() => {}}
+                          onDelete={() => {}}
+                          onEdit={() => {}}
+                          dragOverlay
+                        />
+                      )}
+                    </DragOverlay>
+                  </DndContext>
                 )}
               </div>
 
