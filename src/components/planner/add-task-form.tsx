@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Plus, X, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlannerTask, TaskPriority, TaskCategory } from "@/types/planner";
-import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS, DAILY_PARTS, formatMinutes } from "@/types/planner";
+import { CATEGORY_LABELS, CATEGORY_ICON_COMPONENTS, CATEGORY_COLORS, DAILY_PARTS, formatMinutes } from "@/types/planner";
 
 interface AddTaskFormProps {
   date: string;
@@ -88,6 +88,7 @@ export function AddTaskForm({
   };
 
   if (!open) {
+    const DefIcon = CATEGORY_ICON_COMPONENTS[defaultCategory];
     return (
       <button
         onClick={() => setOpen(true)}
@@ -98,13 +99,16 @@ export function AddTaskForm({
         </div>
         <span className="text-xs">Add a task…</span>
         {defaultCategory !== "general" && (
-          <span className={cn("ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-md", CATEGORY_COLORS[defaultCategory])}>
-            {CATEGORY_ICONS[defaultCategory]} {CATEGORY_LABELS[defaultCategory]}
+          <span className={cn("ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-md flex items-center gap-1", CATEGORY_COLORS[defaultCategory])}>
+            <DefIcon className="size-3" />
+            {CATEGORY_LABELS[defaultCategory]}
           </span>
         )}
       </button>
     );
   }
+
+  const SelIcon = CATEGORY_ICON_COMPONENTS[category];
 
   return (
     <form
@@ -159,30 +163,33 @@ export function AddTaskForm({
             onClick={() => { setShowCatPicker((v) => !v); setShowTimePicker(false); }}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-muted/40 border border-border/40 hover:bg-muted/60 text-[11px] font-medium transition-all text-foreground"
           >
-            <span>{CATEGORY_ICONS[category]}</span>
+            <SelIcon className="size-3.5" />
             <span>{CATEGORY_LABELS[category]}</span>
             <ChevronDown className="size-3 text-muted-foreground" />
           </button>
           {showCatPicker && (
             <div className="absolute top-full left-0 mt-1.5 z-50 bg-popover border border-border rounded-2xl shadow-lg overflow-hidden p-1 w-44">
-              {DAILY_PARTS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => { setCategory(c); setShowCatPicker(false); }}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left",
-                    category === c
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-muted/60 text-foreground"
-                  )}
-                >
-                  <span className="text-base">{CATEGORY_ICONS[c]}</span>
-                  <div>
-                    <p className="font-semibold">{CATEGORY_LABELS[c]}</p>
-                  </div>
-                </button>
-              ))}
+              {DAILY_PARTS.map((c) => {
+                const CIcon = CATEGORY_ICON_COMPONENTS[c];
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => { setCategory(c); setShowCatPicker(false); }}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors text-left",
+                      category === c
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted/60 text-foreground"
+                    )}
+                  >
+                    <CIcon className="size-4" />
+                    <div>
+                      <p className="font-semibold">{CATEGORY_LABELS[c]}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

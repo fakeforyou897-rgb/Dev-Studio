@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { Moon, MapPin, RefreshCw, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { Moon, Sun, CloudSun, Sunset, MoonStar, MapPin, RefreshCw, ChevronDown, ChevronUp, Clock, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PrayerTime {
   name: string;
   arabicName: string;
   time: string;
-  emoji: string;
+  Icon: LucideIcon;
+  iconColor: string;
 }
 
 interface PrayerTimesProps {
@@ -15,12 +16,12 @@ interface PrayerTimesProps {
 }
 
 const PRAYER_KEYS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
-const PRAYER_META: Record<string, { arabic: string; emoji: string }> = {
-  Fajr:    { arabic: "الفجر",   emoji: "🌙" },
-  Dhuhr:   { arabic: "الظهر",   emoji: "☀️" },
-  Asr:     { arabic: "العصر",   emoji: "🌤" },
-  Maghrib: { arabic: "المغرب",  emoji: "🌅" },
-  Isha:    { arabic: "العشاء",  emoji: "🌃" },
+const PRAYER_META: Record<string, { arabic: string; Icon: LucideIcon; iconColor: string }> = {
+  Fajr:    { arabic: "الفجر",  Icon: Moon,    iconColor: "text-indigo-400" },
+  Dhuhr:   { arabic: "الظهر",  Icon: Sun,     iconColor: "text-amber-500" },
+  Asr:     { arabic: "العصر",  Icon: CloudSun,iconColor: "text-sky-400"   },
+  Maghrib: { arabic: "المغرب", Icon: Sunset,  iconColor: "text-orange-500"},
+  Isha:    { arabic: "العشاء", Icon: MoonStar,iconColor: "text-violet-400"},
 };
 
 function to24hMinutes(time: string): number {
@@ -68,7 +69,8 @@ export function PrayerTimes({ date, onPrayerTimesLoaded }: PrayerTimesProps) {
         name: key,
         arabicName: PRAYER_META[key].arabic,
         time: timings[key],
-        emoji: PRAYER_META[key].emoji,
+        Icon: PRAYER_META[key].Icon,
+        iconColor: PRAYER_META[key].iconColor,
       }));
       setPrayers(parsed);
       onPrayerTimesLoaded?.(parsed);
@@ -174,7 +176,7 @@ export function PrayerTimes({ date, onPrayerTimesLoaded }: PrayerTimesProps) {
                 )}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-base leading-none">{prayer.emoji}</span>
+                  <prayer.Icon className={cn("size-4 shrink-0", isNext ? "text-primary-foreground" : prayer.iconColor)} />
                   <div>
                     <p className={cn(
                       "text-xs font-semibold",

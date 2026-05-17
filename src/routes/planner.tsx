@@ -21,7 +21,7 @@ import { OverviewPanel } from "@/components/planner/overview-panel";
 import { getPlannerTasks, upsertPlannerTask, deletePlannerTask } from "@/lib/api/planner";
 import type { PlannerTask, TaskStatus, TaskCategory } from "@/types/planner";
 import {
-  CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_SECTION_STYLES,
+  CATEGORY_LABELS, CATEGORY_ICON_COMPONENTS, CATEGORY_SECTION_STYLES,
   DAILY_PARTS, getWeekTheme, normCategory,
 } from "@/types/planner";
 import { toast } from "sonner";
@@ -101,6 +101,7 @@ function SectionGroup({
   const styles = CATEGORY_SECTION_STYLES[category];
   const done = tasks.filter((t) => t.status === "done").length;
   const pct  = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+  const SectionIcon = CATEGORY_ICON_COMPONENTS[category];
 
   return (
     <div className={cn("rounded-2xl border overflow-hidden", styles.border)}>
@@ -112,7 +113,7 @@ function SectionGroup({
           styles.bg, "hover:brightness-[0.97]"
         )}
       >
-        <span className="text-base">{CATEGORY_ICONS[category]}</span>
+        <SectionIcon className={cn("size-4 shrink-0", styles.label)} />
         <span className={cn("text-xs font-bold flex-1 text-left", styles.label)}>
           {CATEGORY_LABELS[category]}
         </span>
@@ -456,7 +457,7 @@ export default function PlannerPage() {
                       "inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold",
                       weekTheme.color
                     )}>
-                      <span>{weekTheme.icon}</span>
+                      <weekTheme.icon className="size-3.5" />
                       <span>W{weekTheme.week}: {weekTheme.title}</span>
                     </div>
 

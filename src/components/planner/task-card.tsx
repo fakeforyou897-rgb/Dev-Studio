@@ -1,6 +1,6 @@
 import { Check, Trash2, ChevronRight, Clock, Pencil, GripVertical } from "lucide-react";
 import type { PlannerTask } from "@/types/planner";
-import { PRIORITY_COLORS, CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICONS, formatMinutes } from "@/types/planner";
+import { PRIORITY_COLORS, CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICON_COMPONENTS, formatMinutes } from "@/types/planner";
 import { cn } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -113,13 +113,15 @@ export function TaskCard({ task, onToggle, onDelete, onEdit, dragOverlay }: Task
             {task.priority}
           </span>
 
-          <span className={cn(
-            "text-[10px] font-medium px-1.5 py-0.5 rounded-md flex items-center gap-1",
-            CATEGORY_COLORS[task.category]
-          )}>
-            <span className="text-[11px]">{CATEGORY_ICONS[task.category]}</span>
-            {CATEGORY_LABELS[task.category]}
-          </span>
+          {(({ Icon }: { Icon: React.ElementType }) => (
+            <span className={cn(
+              "text-[10px] font-medium px-1.5 py-0.5 rounded-md flex items-center gap-1",
+              CATEGORY_COLORS[task.category]
+            )}>
+              <Icon className="size-3" />
+              {CATEGORY_LABELS[task.category]}
+            </span>
+          ))({ Icon: CATEGORY_ICON_COMPONENTS[task.category] })}
 
           {task.estimatedMinutes && (
             <span className="flex items-center gap-1 text-[10px] text-muted-foreground">

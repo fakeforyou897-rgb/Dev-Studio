@@ -1,7 +1,7 @@
 import { CheckCircle2, Circle, Clock, TrendingUp, Flame, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlannerTask } from "@/types/planner";
-import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICONS } from "@/types/planner";
+import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_ICON_COMPONENTS } from "@/types/planner";
 
 interface OverviewPanelProps {
   tasks: PlannerTask[];
@@ -175,7 +175,7 @@ export function OverviewPanel({ tasks, weekStart }: OverviewPanelProps) {
                       "text-[10px] font-semibold px-2 py-1 rounded-lg flex items-center gap-1 shrink-0 w-28",
                       CATEGORY_COLORS[cat]
                     )}>
-                      <span className="text-[12px]">{CATEGORY_ICONS[cat]}</span>
+                      {(({ I }: { I: React.ElementType }) => <I className="size-3.5" />)({ I: CATEGORY_ICON_COMPONENTS[cat] })}
                       {CATEGORY_LABELS[cat]}
                     </div>
                     <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">

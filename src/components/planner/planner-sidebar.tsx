@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, CalendarDays, TrendingUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlannerTask } from "@/types/planner";
-import { WEEK_THEMES, getWeekTheme, CATEGORY_ICONS, CATEGORY_LABELS } from "@/types/planner";
+import { WEEK_THEMES, getWeekTheme, CATEGORY_ICON_COMPONENTS, CATEGORY_LABELS } from "@/types/planner";
 
 interface PlannerSidebarProps {
   selectedDate: string;
@@ -188,7 +188,7 @@ export function PlannerSidebar({
                     : "border-border/40 text-muted-foreground"
                 )}
               >
-                <span className="text-sm">{theme.icon}</span>
+                <theme.icon className="size-4 shrink-0" />
                 <div className="min-w-0">
                   <p className="font-semibold leading-tight">W{theme.week}: {theme.title}</p>
                 </div>
@@ -205,11 +205,12 @@ export function PlannerSidebar({
         </p>
         <div className="space-y-0.5">
           {(["activities", "work", "learning"] as const).map((cat) => {
+            const CatIcon = CATEGORY_ICON_COMPONENTS[cat];
             const dayT = tasks.filter((t) => t.date === selectedDate && t.category === cat);
             const done = dayT.filter((t) => t.status === "done").length;
             return (
               <div key={cat} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/40 transition-colors">
-                <span className="text-sm">{CATEGORY_ICONS[cat]}</span>
+                <CatIcon className="size-3.5 text-muted-foreground shrink-0" />
                 <span className="text-[11px] font-medium text-muted-foreground flex-1">
                   {CATEGORY_LABELS[cat]}
                 </span>

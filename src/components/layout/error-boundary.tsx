@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from "react";
-import { RefreshCw, Home } from "lucide-react";
+import { RefreshCw, Home, AlertTriangle } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -37,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex flex-1 items-center justify-center p-8">
           <div className="max-w-sm w-full text-center space-y-4">
             <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
-              <span className="text-2xl">⚠️</span>
+              <AlertTriangle className="size-6 text-destructive" />
             </div>
             <div className="space-y-1">
               <h2 className="text-base font-semibold text-foreground">
