@@ -276,7 +276,7 @@ export function ATSChecker({ cvProfile }: ATSCheckerProps) {
                 <ul className="space-y-1.5">
                   {result.focusInsights.map((s, i) => (
                     <li key={i} className="text-xs text-muted-foreground flex gap-2">
-                      <span className="text-primary shrink-0">✦</span>
+                      <span className="text-primary shrink-0 mt-px"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg></span>
                       {s}
                     </li>
                   ))}
