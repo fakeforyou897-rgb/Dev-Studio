@@ -1,213 +1,115 @@
-# Data Models
+# 💾 Database Schema and Data Models
 
-All data is stored in Replit PostgreSQL via Drizzle ORM. The schema is defined in `shared/schema.ts`.
+> [!NOTE]
+> Dev Studio utilizes Drizzle ORM to define, migrate, and query PostgreSQL tables. The schemas are split into modular files under **`backend/src/domain/schema/`** to optimize maintenance and build performance.
 
-## Asset Types
+---
 
-### Prompt
+## 📂 Schema File Map
 
-Versioned prompt library with variables and usage tracking.
+All database tables are defined in standard Drizzle format inside:
+- `backend/src/domain/schema/auth.ts` — User profiles and verification states.
+- `backend/src/domain/schema/core.ts` — Prompts, agents, templates, components, and snippets.
+- `backend/src/domain/schema/learning.ts` — Interview questions and progress tracking.
 
-```typescript
-interface Prompt {
-  id: string;           // UUID (auto-generated)
-  userId: string;       // Replit user ID
-  title: string;
-  description?: string;
-  category?: string;
-  tags: string[];
-  body: string;         // Prompt content
-  variables: string[];  // Template variables e.g. ["language", "framework"]
-  model?: string;       // Preferred AI model
-  favorite: boolean;
-  usageCount: number;
-  versions: {           // Version history (stored as JSON)
-    id: string;
-    createdAt: number;
-    body: string;
-    note?: string;
-  }[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+---
 
-### Agent
+## 👥 Authentication Models
 
-Custom AI agent with system prompt and tool list.
+### 📍 `auth_users`
+Stores user profile credentials, Google OAuth logins, and validation states.
 
-```typescript
-interface Agent {
-  id: string;
-  userId: string;
-  name: string;
-  role?: string;
-  systemPrompt: string;
-  tools: string[];
-  model?: string;
-  temperature: number;  // 0–2, default 0.7
-  status: string;       // "active" | "idle" | "draft"
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key, Default Random | Unique identifier. |
+| `email` | `text` | Unique, Index | User's email address. |
+| `password_hash` | `text` | Nullable | Encrypted password string. Null for Google OAuth accounts. |
+| `google_id` | `text` | Unique, Nullable | Google OAuth identifier. |
+| `display_name` | `text` | Nullable | Profile name displayed in dashboard views. |
+| `avatar_url` | `text` | Nullable | URL to user's profile image. |
+| `is_verified` | `boolean` | Not Null, Default `false` | Email verification flag. |
+| `verification_token` | `text` | Nullable | Temporary token for email activation. |
+| `verification_token_expires`| `timestamp` | Nullable | Expiry date of active verification token. |
+| `created_at` | `timestamp` | Not Null, Default Now | Creation timestamp. |
+| `updated_at` | `timestamp` | Not Null, Default Now | Last update timestamp. |
+| `deleted_at` | `timestamp` | Nullable | Soft delete timestamp. |
 
-### Component
+---
 
-Reusable code component with dependency list.
+## 🛠️ Core Business Models
 
-```typescript
-interface ComponentAsset {
-  id: string;
-  userId: string;
-  name: string;
-  description?: string;
-  category?: string;
-  tags: string[];
-  code: string;
-  dependencies: string[];
-  favorite: boolean;
-  usageCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+### 📍 `prompts`
+Maintains user prompt libraries, parameter lists, and favorite markers.
 
-### Template
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key, Default Random | Unique identifier. |
+| `user_id` | `text` | Not Null, Index | ID of the owning user. |
+| `title` | `text` | Not Null | Prompt display title. |
+| `description` | `text` | Nullable | Long description of the prompt. |
+| `body` | `text` | Not Null | The actual prompt template text. |
+| `variables` | `text[]` | Default `[]` | Parsed template variables (e.g. `['topic', 'length']`). |
+| `category` | `text` | Nullable | Categorization label. |
+| `tags` | `text[]` | Default `[]` | Searchable tag labels. |
+| `favorite` | `boolean` | Default `false` | Pin flag. |
+| `usage_count` | `integer` | Default `0` | Number of times consumed. |
+| `versions` | `jsonb` | Default `[]` | Revision log history containing old body states. |
 
-Project starter template with tech stack.
+### 📍 `agents`
+Stores system configuration parameters for custom AI Agents.
 
-```typescript
-interface Template {
-  id: string;
-  userId: string;
-  name: string;
-  description?: string;
-  stack: string[];      // e.g. ["React", "Node.js", "PostgreSQL"]
-  tags: string[];
-  structure?: string;   // Project structure description
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key, Default Random | Unique identifier. |
+| `user_id` | `text` | Not Null, Index | Owning user ID. |
+| `name` | `text` | Not Null | Agent profile name. |
+| `role` | `text` | Nullable | The agent's core role description. |
+| `system_prompt` | `text` | Not Null | Custom instructions injected into system role context. |
+| `tools` | `text[]` | Default `[]` | Enabled integrations or runtime utility handlers. |
+| `model` | `text` | Nullable | Selected AI engine model (e.g. `gpt-4o`, `gpt-3.5-turbo`). |
+| `temperature` | `real` | Default `0.7` | Model response creativity temperature settings. |
+| `status` | `text` | Default `draft` | Active state: `draft`, `active`, or `archived`. |
 
-### Snippet
+### 📍 `components`
+Stores reusable frontend React code snippets and metadata.
 
-Code snippet organized by language.
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key, Default Random | Unique identifier. |
+| `user_id` | `text` | Not Null, Index | Owning user ID. |
+| `name` | `text` | Not Null | Component title. |
+| `code` | `text` | Not Null | The source JSX/TSX React code. |
+| `dependencies` | `text[]` | Default `[]` | Required packages to run (e.g., `lucide-react`). |
+| `favorite` | `boolean` | Default `false` | Pin flag. |
 
-```typescript
-interface Snippet {
-  id: string;
-  userId: string;
-  title: string;
-  language: string;
-  description?: string;
-  code: string;
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+---
 
-### Connector
+## 🧠 Interview & Learning Prep Models
 
-External service or contact record.
+### 📍 `interview_questions`
+Stores interview preparation questions, answers, and depth states.
 
-```typescript
-interface Connector {
-  id: string;
-  userId: string;
-  type: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key, Default Random | Unique identifier. |
+| `user_id` | `text` | Nullable, Index | ID of the creator. Null for global seed questions. |
+| `question` | `text` | Not Null | The query string. |
+| `answer` | `text` | Not Null | Detailed baseline answer explanation. |
+| `difficulty` | `enum` | Default `mid` | Enum: `junior`, `mid`, `senior`. |
+| `area` | `enum` | Not Null | Category Enum: `frontend`, `backend`, `devops`, `database`. |
+| `answer_depths` | `jsonb` | Default `[]` | Graduated response depths (e.g., summary, detailed, advanced). |
+| `is_global` | `boolean` | Default `false`, Index | Set to `true` for standard system seed questions. |
 
-### Social Draft
+### 📍 `user_progress`
+Tracks user completion status across prep questions and tech roadmaps.
 
-Draft post for social platforms.
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `user_id` | `text` | Not Null | Owning user identifier. |
+| `item_id` | `text` | Not Null | ID of the related item. |
+| `area_id` | `text` | Not Null | Category identifier (for easy aggregation). |
+| `completed` | `boolean` | Default `true` | Progress completion flag. |
+| `updated_at` | `timestamp` | Not Null, Default Now | Update timestamp. |
 
-```typescript
-interface SocialDraft {
-  id: string;
-  userId: string;
-  platform: string;
-  content: string;
-  mediaUrls: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Mail Template
-
-Reusable email template by channel.
-
-```typescript
-interface MailTemplate {
-  id: string;
-  userId: string;
-  channel: string;
-  subject?: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Interview Question
-
-Q&A entry for interview preparation.
-
-```typescript
-interface InterviewQuestion {
-  id: string;
-  userId?: string;      // null for global (seeded) questions
-  question: string;
-  answer: string;
-  difficulty?: string;  // "junior" | "mid" | "senior"
-  domain: string;       // "frontend" | "backend" | "devops" | ...
-  tags: string[];
-  isGlobal: boolean;    // true = visible to all users
-  createdAt: Date;
-}
-```
-
-### User Progress
-
-Tracks checklist completion per user.
-
-```typescript
-interface UserProgress {
-  userId: string;    // composite PK
-  itemId: string;    // composite PK
-  areaId: string;
-  completed: boolean;
-  updatedAt: Date;
-}
-```
-
-## Database Schema
-
-The actual schema is in `shared/schema.ts` and uses Drizzle ORM with Replit PostgreSQL.
-
-All timestamp columns (`created_at`, `updated_at`) default to `NOW()` on the database side. When sending data from the frontend, date strings are stripped and timestamps are handled server-side.
-
-## Types
-
-TypeScript definitions live in `src/types/`:
-
-- `src/types/tools.ts` — Prompt, Agent, ComponentAsset, Template, Snippet, Connector, SocialDraft, MailTemplate
-- `src/types/skills.ts` — InterviewQuestion, FocusArea, Difficulty
-- `src/types/common.ts` — Shared utility types
-
-## Related
-
-- [Architecture Overview](./README.md)
-- [Setup Guide](../setup/README.md)
+> [!NOTE]
+> The primary key for `user_progress` is composed of `(user_id, item_id)` to prevent double tracking records.

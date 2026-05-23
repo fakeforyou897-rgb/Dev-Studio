@@ -1,85 +1,81 @@
-# Architecture Overview
+# 📐 System Architecture
 
-Dev Studio is a personal AI development hub built with React + Express on Replit.
+> [!NOTE]
+> Dev Studio is built around strict separation of concerns, modular dependency flow, and security-first request pipelines. This document details the architectural boundaries between the React frontend and the Clean Architecture backend.
 
-## System Diagram
+---
 
-```
-┌──────────────────────────────────────────────────────┐
-│                   Browser / Client                    │
-│  React 19 · TanStack Router · TanStack Query          │
-│  Zustand (state) · shadcn/ui (components)             │
-└─────────────────────────┬────────────────────────────┘
-                          │  fetch /api/*
-┌─────────────────────────▼────────────────────────────┐
-│              Express Server (server.ts)               │
-│  GET  /api/auth/user       — Replit identity          │
-│  /api/prompts              — CRUD prompts             │
-│  /api/agents               — CRUD agents             │
-│  /api/components           — CRUD components         │
-│  /api/snippets             — CRUD snippets           │
-│  /api/templates            — CRUD templates          │
-│  /api/connectors           — CRUD connectors         │
-│  /api/social-drafts        — CRUD social drafts      │
-│  /api/mail-templates       — CRUD mail templates     │
-│  /api/interview-questions  — CRUD interview Q&A      │
-│  /api/progress             — user checklist progress │
-└─────────────────────────┬────────────────────────────┘
-                          │  Drizzle ORM
-┌─────────────────────────▼────────────────────────────┐
-│           Replit PostgreSQL (DATABASE_URL)            │
-│  prompts · agents · components · snippets            │
-│  templates · connectors · social_drafts              │
-│  mail_templates · interview_questions · user_progress│
-└──────────────────────────────────────────────────────┘
+## 🗺️ System Component Diagram
+
+The interaction model below outlines how requests move from client UI interactions, through middlewares, controllers, and services, down to the database persistence layer.
+
+```mermaid
+graph TD
+    subgraph Frontend [React SPA]
+        UI[React Components] --> Store[Zustand Stores]
+        Store --> API[Fetch / API Connectors]
+    end
+
+    subgraph Backend [Express 5 Server]
+        API --> Routes[presentation/routes.ts]
+        Routes --> Mid[presentation/middleware/auth.ts]
+        Mid --> Control[presentation/controllers/]
+        Control --> Service[application/services/]
+        Service --> Schema[domain/schema/]
+        Service --> DB[infrastructure/database/]
+    end
+
+    DB --> PG[(PostgreSQL)]
 ```
 
-## Authentication
+---
 
-Users authenticate via Replit. When signed in, the Replit proxy injects two headers into every server request:
+## 🏗️ Backend Design: Clean Architecture
 
-- `x-replit-user-id` — stable unique user ID
-- `x-replit-user-name` — display name
+The backend code inside the `backend/src/` folder is separated into four layers following Clean Architecture principles. Dependencies always point inward:
 
-The server reads these in `GET /api/auth/user`. The frontend's `AuthProvider` (`src/hooks/use-auth.tsx`) fetches that endpoint on mount. Unauthenticated requests return 401 and the app redirects to `/auth`.
+### 1. 📂 Domain (`backend/src/domain/`)
+- **Entities & Schemas**: Defines database tables using Drizzle ORM (under `domain/schema/`).
+- **Enums & Constants**: Project-wide business enums (e.g., `AgentStatus`, `QuestionArea`).
+- **Interfaces**: Contracts that describe data access operations or external services.
+- *Has zero external dependencies on framework packages.*
 
-## Data Flow
+### 2. 📂 Application (`backend/src/application/`)
+- **Services**: Classes executing business logic and core features (e.g., computing progress scores, handling AI prompt calls).
+- **Use Cases**: Specific orchestrations of domain structures and interfaces.
 
-```
-User action in UI
-  → Zustand store action (optimistic update in state)
-  → fetch /api/<resource>  (POST / DELETE)
-  → Express route handler
-  → Drizzle ORM query against PostgreSQL
-  → Response updates store (or rolls back on error)
-  → Toast notification shown
-```
+### 3. 📂 Infrastructure (`backend/src/infrastructure/`)
+- **Database Connection**: Configures the PostgreSQL connection pool using Drizzle.
+- **Seeds & Migrations**: Handles populating development tables with default data.
+- **External Adapters**: Connectors to third-party services like OpenAI API or Slack webhook clients.
 
-## Technology Stack
+### 4. 📂 Presentation (`backend/src/presentation/`)
+- **Controllers**: Receives HTTP requests, validates arguments, invokes application services, and returns HTTP responses.
+- **Routes**: Directs HTTP endpoints to controllers.
+- **Middleware**: Custom security filters (JWT verification, rate limiters, error catch-all routes).
 
-| Layer | Technology |
-|---|---|
-| Frontend framework | React 19 |
-| Routing | TanStack Router (file-based) |
-| Data fetching | TanStack Query |
-| State management | Zustand (persisted to localStorage) |
-| Styling | Tailwind CSS v4 + shadcn/ui |
-| Forms | React Hook Form + Zod |
-| Server | Express 5 + tsx |
-| ORM | Drizzle ORM |
-| Database | Replit PostgreSQL |
-| Build tool | Vite |
-| Language | TypeScript |
+---
 
-## Key Files
+## 🎨 Frontend Design: Single Page Application
 
-| File | Purpose |
-|---|---|
-| `server.ts` | Express entry point, auth endpoint, Vite dev middleware |
-| `server/routes.ts` | All `/api/*` route handlers |
-| `server/db.ts` | Drizzle ORM client |
-| `shared/schema.ts` | Database schema (source of truth) |
-| `src/lib/store.ts` | Zustand store — all app state and actions |
-| `src/lib/api.ts` | REST API client called by the store |
-| `src/hooks/use-auth.tsx` | Auth context and `useAuth()` hook |
-| `src/routes/__root.tsx` | Root layout with providers |
+The frontend inside the `frontend/` folder operates as a modern client-side React SPA:
+
+- **State Management (Zustand)**: Client-side state is handled in stores (under `frontend/src/lib/store/`). Features like active sessions, prompt favorites, and UI dark/light modes sync with `localStorage` automatically.
+- **Routing (TanStack Router)**: Type-safe client-side routing. Route setups are organized under `frontend/src/routes/` with automated layout wrappers and authorization checks.
+- **Styling (Tailwind CSS v4)**: Atomic utility styling. Custom theme presets and variables are defined in `frontend/src/index.css`.
+- **UI Components**: Uses atomic, accessible shadcn/ui structures with custom styling overlays.
+
+---
+
+## ⚡ Core Architecture Files Reference
+
+Use the table below to locate the foundational files in the codebase:
+
+| Path | Purpose |
+| :--- | :--- |
+| **[backend/src/index.ts](file:///c:/Users/Memo/Downloads/Dev%20Studio/Dev-Studio/backend/src/index.ts)** | The Express server entry point. Configures CORS, security headers, cookie parser, and starts listening. |
+| **[backend/src/presentation/routes.ts](file:///c:/Users/Memo/Downloads/Dev%20Studio/Dev-Studio/backend/src/presentation/routes.ts)** | Core API route registration. Standardizes sub-routes (auth, interview prep, agents, prompts, snippets, templates). |
+| **[backend/src/presentation/middleware/auth.ts](file:///c:/Users/Memo/Downloads/Dev%20Studio/Dev-Studio/backend/src/presentation/middleware/auth.ts)** | Session extraction and signature verification from the signed JWT cookie (`ds_token`). |
+| **[backend/src/domain/schema.ts](file:///c:/Users/Memo/Downloads/Dev%20Studio/Dev-Studio/backend/src/domain/schema.ts)** | Aggregates all tables from modular schema files into a unified export for Drizzle ORM. |
+| **[frontend/src/main.tsx](file:///c:/Users/Memo/Downloads/Dev%20Studio/Dev-Studio/frontend/src/main.tsx)** | Renders the React root element, mounts the TanStack Router provider, and registers TanStack Query client context. |
+| **[frontend/src/lib/store/useAuthStore.ts](file:///c:/Users/Memo/Downloads/Dev%20Studio/Dev-Studio/frontend/src/lib/store/useAuthStore.ts)** | Zustand client store managing active user profile info, loading states, and auth checks. |
