@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -13,13 +13,39 @@ export function AuthGate() {
   const { init } = useForge();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const router = useRouter();
+  const prevUserIdRef = useRef<string | null>(null);
 
   const isPublic = PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
 
   const [loadingTime, setLoadingTime] = useState(0);
 
   useEffect(() => {
-    if (isReady && user) {
+    if (!isReady) return;
+
+    const currentId = user?.id ?? null;
+    const prevId = prevUserIdRef.current;
+
+    if (currentId !== prevId) {
+      prevUserIdRef.current = currentId;
+
+      if (!currentId) {
+        useForge.setState({
+          initialized: false,
+          prompts: [],
+          agents: [],
+          components: [],
+          templates: [],
+          snippets: [],
+          interviewQuestions: [],
+          connectors: [],
+          socialDrafts: [],
+          mailTemplates: [],
+          cvProfiles: [],
+        });
+      }
+    }
+
+    if (user) {
       init();
     }
   }, [isReady, user, init]);
